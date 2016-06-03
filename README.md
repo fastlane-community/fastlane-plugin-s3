@@ -12,7 +12,45 @@ fastlane add_plugin s3
 
 ## About s3
 
-Upload IPA and APK to S3
+Upload a new build to Amazon S3 to distribute the build to beta testers. Works for both Ad Hoc and Enterprise signed applications. This step will generate the necessary HTML, plist, and version files for you.
+
+Add the `s3` action after the `gym` step:
+
+```ruby
+s3
+```
+
+You can also customize a lot of options:
+```ruby
+s3(
+  # All of these are used to make Shenzhen's `ipa distribute:s3` command
+  access_key: ENV['S3_ACCESS_KEY'],               # Required from user.
+  secret_access_key: ENV['S3_SECRET_ACCESS_KEY'], # Required from user.
+  bucket: ENV['S3_BUCKET'],                       # Required from user.
+  region: ENV['S3_REGION'],                       # Required from user.
+
+  ipa: 'AppName.ipa',                             # Required (if not uploading an APK).
+  dsym: 'AppName.app.dSYM.zip',                   # Optional is you use `ipa` to build.
+
+  apk: 'AppName.apk'                              # Required (if not uploading an IPA).
+
+  path: 'v{CFBundleShortVersionString}_b{CFBundleVersion}/', # This is actually the default.
+  upload_metadata: true,                          # Upload version.json, plist and HTML. Set to false to skip uploading of these files.
+  version_file_name: 'app_version.json',          # Name of the file to upload to S3. Defaults to 'version.json'
+  version_template_path: 'path/to/erb'            # Path to an ERB to configure the structure of the version JSON file
+)
+```
+
+It is recommended to **not** store the AWS access keys in the `Fastfile`.
+
+The uploaded `version.json` file provides an easy way for apps to poll if a new update is available. The JSON looks like:
+
+```json
+{
+    "latestVersion": "<%= full_version %>",
+    "updateUrl": "itms-services://?action=download-manifest&url=<%= url %>"
+}
+```
 
 ## Example
 

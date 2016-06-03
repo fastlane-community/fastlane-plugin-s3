@@ -1,3 +1,32 @@
-lane :test do
-  s3()
+
+lane :ipa21 do
+  s3(
+    bucket: 'fastlane-plugin-s3-ios',
+    region: 'us-west-1',
+    ipa: './fastlane/ipa21/BanditTheCat.ipa'
+  )
+end
+
+lane :ipa24 do
+  s3(
+    bucket: 'fastlane-plugin-s3-ios',
+    region: 'us-west-1',
+    ipa: './fastlane/ipa24/BanditTheCat.ipa'
+  )
+end
+
+lane :apk1 do
+  s3(
+    bucket: 'fastlane-plugin-s3-android',
+    region: 'us-west-1',
+    apk: './fastlane/apk1/BanditTheCat.apk',
+  )
+end
+
+lane :apk2 do
+  s3(
+    bucket: 'fastlane-plugin-s3-android',
+    region: 'us-west-1',
+    apk: './fastlane/apk2/BanditTheCat.apk'
+  )
 end

@@ -5,6 +5,7 @@ require 'ostruct'
 module Fastlane
   module Actions
     module SharedValues
+      S3_APK_OUTPUT_PATH = :S3_APK_OUTPUT_PATH
       S3_IPA_OUTPUT_PATH = :S3_IPA_OUTPUT_PATH
       S3_DSYM_OUTPUT_PATH = :S3_DSYM_OUTPUT_PATH
       S3_PLIST_OUTPUT_PATH = :S3_PLIST_OUTPUT_PATH
@@ -12,22 +13,11 @@ module Fastlane
       S3_VERSION_OUTPUT_PATH = :S3_VERSION_OUTPUT_PATH
     end
 
-    S3_ARGS_MAP = {
-      ipa: '-f',
-      dsym: '-d',
-      access_key: '-a',
-      secret_access_key: '-s',
-      bucket: '-b',
-      region: '-r',
-      acl: '--acl',
-      source: '--source-dir',
-      path: '-P'
-    }
-
     class S3Action < Action
       def self.run(config)
         # Calling fetch on config so that default values will be used
         params = {}
+        params[:apk] = config[:apk]
         params[:ipa] = config[:ipa]
         params[:dsym] = config[:dsym]
         params[:access_key] = config[:access_key]
@@ -43,7 +33,6 @@ module Fastlane
         params[:html_file_name] = config[:html_file_name]
         params[:version_template_path] = config[:version_template_path]
         params[:version_file_name] = config[:version_file_name]
-        params [:acl] = config[:acl]
 
         # Pulling parameters for other uses
         s3_region = params[:region]
@@ -51,6 +40,7 @@ module Fastlane
         s3_access_key = params[:access_key]
         s3_secret_access_key = params[:secret_access_key]
         s3_bucket = params[:bucket]
+        apk_file = params[:apk]
         ipa_file = params[:ipa]
         dsym_file = params[:dsym]
         s3_path = params[:path]
@@ -59,7 +49,24 @@ module Fastlane
         UI.user_error!("No S3 access key given, pass using `access_key: 'key'`") unless s3_access_key.to_s.length > 0
         UI.user_error!("No S3 secret access key given, pass using `secret_access_key: 'secret key'`") unless s3_secret_access_key.to_s.length > 0
         UI.user_error!("No S3 bucket given, pass using `bucket: 'bucket'`") unless s3_bucket.to_s.length > 0
-        UI.user_error!("No IPA file path given, pass using `ipa: 'ipa path'`") unless ipa_file.to_s.length > 0
+        UI.user_error!("No IPA or APK file path given, pass using `ipa: 'ipa path'` or `apk: 'apk path'`") if ipa_file.to_s.length == 0 && apk_file.to_s.length == 0
+        UI.user_error!("Please only give IPA path or APK path (not both)") if ipa_file.to_s.length > 0 && apk_file.to_s.length > 0
+
+        require 'aws-sdk'
+        Aws.config.update({
+          region: s3_region,
+          credentials: Aws::Credentials.new(s3_access_key, s3_secret_access_key)
+        })
+
+        upload_ipa(params, s3_region, s3_subdomain, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl) if ipa_file.to_s.length > 0
+        upload_apk(params, s3_region, s3_subdomain, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl) if apk_file.to_s.length > 0
+
+        return true
+      end
+
+      def self.upload_ipa(params, s3_region, s3_subdomain, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl)
+
+        s3_path = "v{CFBundleShortVersionString}_b{CFBundleVersion}/" unless s3_path
 
         plist_template_path = params[:plist_template_path]
         html_template_path = params[:html_template_path]
@@ -129,7 +136,7 @@ module Fastlane
         if plist_template_path && File.exist?(plist_template_path)
           plist_template = eth.load_from_path(plist_template_path)
         else
-          plist_template = eth.load("s3_plist_template")
+          plist_template = eth.load("s3_ios_plist_template")
         end
         plist_render = eth.render(plist_template, {
           url: ipa_url,
@@ -144,7 +151,7 @@ module Fastlane
         if html_template_path && File.exist?(html_template_path)
           html_template = eth.load_from_path(html_template_path)
         else
-          html_template = eth.load("s3_html_template")
+          html_template = eth.load("s3_ios_html_template")
         end
         html_render = eth.render(html_template, {
           url: plist_url,
@@ -160,7 +167,7 @@ module Fastlane
         if version_template_path && File.exist?(version_template_path)
           version_template = eth.load_from_path(version_template_path)
         else
-          version_template = eth.load("s3_version_template")
+          version_template = eth.load("s3_ios_version_template")
         end
         version_render = eth.render(version_template, {
           url: plist_url,
@@ -192,36 +199,155 @@ module Fastlane
         ENV[SharedValues::S3_VERSION_OUTPUT_PATH.to_s] = version_url
 
         UI.success("Successfully uploaded ipa file to '#{Actions.lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}'")
+      end
 
-        return true
+      def self.upload_apk(params, s3_region, s3_subdomain, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl)
+
+
+        version = get_apk_version(apk_file)
+
+        version_code = version[0]
+        version_name = version[1]
+        title = version[2]
+
+        s3_path = "#{version_code}_#{version_name}/" unless s3_path
+
+        html_template_path = params[:html_template_path]
+        html_file_name = params[:html_file_name]
+        version_template_path = params[:version_template_path]
+        version_file_name = params[:version_file_name]
+
+        #s3_client = self.s3_client(s3_access_key, s3_secret_access_key, s3_region)
+        #bucket = s3_client.list_buckets.buckets.find { |bucket| bucket.name == s3_bucket }
+
+        s3 = Aws::S3::Resource.new
+        bucket = s3.bucket(s3_bucket)
+
+        url_part = s3_path
+
+        apk_file_basename = File.basename(apk_file)
+        apk_file_name = "#{url_part}#{apk_file_basename}"
+        apk_file_data = File.open(apk_file, 'rb')
+
+        apk_url = self.upload_file(bucket, apk_file_name, apk_file_data, acl)
+
+        # Setting action and environment variables
+        Actions.lane_context[SharedValues::S3_APK_OUTPUT_PATH] = apk_url
+        ENV[SharedValues::S3_APK_OUTPUT_PATH.to_s] = apk_url
+
+        if params[:upload_metadata] == false
+          return true
+        end
+
+        #####################################
+        #
+        # html and plist building
+        #
+        #####################################
+
+        html_file_name ||= "index.html"
+
+        version_file_name ||= "version.json"
+
+        # grabs module
+        eth = Fastlane::Helper::S3Helper
+
+        # Creates html from template
+        if html_template_path && File.exist?(html_template_path)
+          html_template = eth.load_from_path(html_template_path)
+        else
+          html_template = eth.load("s3_android_html_template")
+        end
+        html_render = eth.render(html_template, {
+          apk_url: apk_url,
+          version_code: version_code,
+          version_name: version_name,
+          title: title
+        })
+
+        # Creates version from template
+        if version_template_path && File.exist?(version_template_path)
+          version_template = eth.load_from_path(version_template_path)
+        else
+          version_template = eth.load("s3_android_version_template")
+        end
+        version_render = eth.render(version_template, {
+          apk_url: apk_url,
+          version_code: version_code,
+          version_name: version_name,
+          full_version: "#{version_code}_#{version_name}"
+        })
+
+        #####################################
+        #
+        # html and plist uploading
+        #
+        #####################################
+
+        html_url = self.upload_file(bucket, html_file_name, html_render, acl)
+        version_url = self.upload_file(bucket, version_file_name, version_render, acl)
+
+        Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH] = html_url
+        ENV[SharedValues::S3_HTML_OUTPUT_PATH.to_s] = html_url
+
+        Actions.lane_context[SharedValues::S3_VERSION_OUTPUT_PATH] = version_url
+        ENV[SharedValues::S3_VERSION_OUTPUT_PATH.to_s] = version_url
+
+        UI.success("Successfully uploaded ipa file to '#{Actions.lane_context[SharedValues::S3_APK_OUTPUT_PATH]}'")
+      end
+
+      def self.get_apk_version(apk_file)
+        require 'apktools/apkxml'
+
+        # Load the XML data
+        parser = ApkXml.new(apk_file)
+        parser.parse_xml("AndroidManifest.xml", false, true)
+
+        elements = parser.xml_elements
+
+        versionCode = nil
+        versionName = nil
+        name = nil
+
+        elements.each do |element|
+          if element.name == "manifest"
+            element.attributes.each do |attr|
+              if attr.name == "versionCode"
+                versionCode = attr.value
+              elsif attr.name == "versionName"
+                versionName = attr.value
+              end
+            end
+          elsif element.name == "application"
+            element.attributes.each do |attr|
+              if attr.name == "label"
+                name = attr.value
+              end
+            end
+          end
+        end
+
+        [versionCode, versionName, name]
       end
 
       def self.s3_client(s3_access_key, s3_secret_access_key, s3_region)
-        Actions.verify_gem!('aws-sdk')
-        require 'aws-sdk'
-        if s3_region
-          s3_client = AWS::S3.new(
-            access_key_id: s3_access_key,
-            secret_access_key: s3_secret_access_key,
-            region: s3_region
-          )
-        else
-          s3_client = AWS::S3.new(
-            access_key_id: s3_access_key,
-            secret_access_key: s3_secret_access_key
-          )
-        end
-        s3_client
+        require 'aws-sdk-core'
+        Aws::S3::Client.new
       end
 
       def self.upload_file(bucket, file_name, file_data, acl)
-        obj = bucket.objects.create(file_name, file_data, acl: acl)
+        obj = bucket.object(file_name)
+        obj = bucket.put_object({
+          acl: acl,
+          key: file_name,
+          body: file_data
+        })
 
         # When you enable versioning on a S3 bucket,
         # writing to an object will create an object version
         # instead of replacing the existing object.
         # http://docs.aws.amazon.com/AWSRubySDK/latest/AWS/S3/ObjectVersion.html
-        if obj.kind_of? AWS::S3::ObjectVersion
+        if obj.kind_of? Aws::S3::ObjectVersion
           obj = obj.object
         end
 
@@ -258,6 +384,11 @@ module Fastlane
 
       def self.available_options
         [
+          FastlaneCore::ConfigItem.new(key: :apk,
+                                       env_name: "",
+                                       description: ".apk file for the build ",
+                                       optional: true,
+                                       default_value: Actions.lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]),
           FastlaneCore::ConfigItem.new(key: :ipa,
                                        env_name: "",
                                        description: ".ipa file for the build ",
@@ -317,8 +448,7 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :path,
                                        env_name: "S3_PATH",
                                        description: "S3 'path'. Values from Info.plist will be substituded for keys wrapped in {}  ",
-                                       optional: true,
-                                       default_value: 'v{CFBundleShortVersionString}_b{CFBundleVersion}/'),
+                                       optional: true),
           FastlaneCore::ConfigItem.new(key: :source,
                                        env_name: "S3_SOURCE",
                                        description: "Optional source directory e.g. ./build ",
@@ -327,7 +457,7 @@ module Fastlane
                                        env_name: "S3_ACL",
                                        description: "Uploaded object permissions e.g public_read (default), private, public_read_write, authenticated_read ",
                                        optional: true,
-                                       default_value: "public_read"
+                                       default_value: "public-read"
                                       )
         ]
       end

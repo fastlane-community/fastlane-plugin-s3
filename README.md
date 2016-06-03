@@ -14,6 +14,8 @@ fastlane add_plugin s3
 
 Upload a new build to Amazon S3 to distribute the build to beta testers. Works for both Ad Hoc and Enterprise signed applications. This step will generate the necessary HTML, plist, and version files for you.
 
+The `s3` action can upload both iOS apps (IPAs) and Android apps (APKs). It is **highly** suggested that you make a separate bucket for each of the apps.
+
 Add the `s3` action after the `gym` step:
 
 ```ruby

@@ -327,6 +327,10 @@ module Fastlane
           end
         end
 
+        if versionCode =~ /^0x[0-9A-Fa-f]+$/ #if is hex
+          versionCode = versionCode.to_i(16)
+        end
+
         [versionCode, versionName, name]
       end
 

@@ -293,7 +293,7 @@ module Fastlane
         Actions.lane_context[SharedValues::S3_VERSION_OUTPUT_PATH] = version_url
         ENV[SharedValues::S3_VERSION_OUTPUT_PATH.to_s] = version_url
 
-        UI.success("Successfully uploaded ipa file to '#{Actions.lane_context[SharedValues::S3_APK_OUTPUT_PATH]}'")
+        UI.success("Successfully uploaded apk file to '#{Actions.lane_context[SharedValues::S3_APK_OUTPUT_PATH]}'")
       end
 
       def self.get_apk_version(apk_file)

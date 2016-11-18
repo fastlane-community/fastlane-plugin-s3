@@ -1,6 +1,6 @@
 module Fastlane
   module Helper
-    class S3Helper
+    class AwsS3Helper
       # class methods that you define here become available in your action
       # as `Helper::S3Helper.your_method`
       #
@@ -14,7 +14,8 @@ module Fastlane
       #
       require "erb"
       def self.load(template_name)
-        path = "#{Helper.gem_path('fastlane-plugin-s3')}/lib/assets/#{template_name}.erb"
+        path = "#{Helper.gem_path('fastlane-plugin-aws_s3')}/lib/assets/#{template_name}.erb"
+        puts "path #{path}"
         load_from_path(path)
       end
 

@@ -13,7 +13,7 @@ module Fastlane
       S3_VERSION_OUTPUT_PATH = :S3_VERSION_OUTPUT_PATH
     end
 
-    class S3Action < Action
+    class AwsS3Action < Action
       def self.run(config)
         # Calling fetch on config so that default values will be used
         params = {}
@@ -58,13 +58,15 @@ module Fastlane
           credentials: Aws::Credentials.new(s3_access_key, s3_secret_access_key)
         })
 
-        upload_ipa(params, s3_region, s3_subdomain, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl) if ipa_file.to_s.length > 0
-        upload_apk(params, s3_region, s3_subdomain, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl) if apk_file.to_s.length > 0
+        s3_client = Aws::S3::Client.new
+
+        upload_ipa(s3_client, params, s3_region, s3_subdomain, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl) if ipa_file.to_s.length > 0
+        upload_apk(s3_client, params, s3_region, s3_subdomain, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl) if apk_file.to_s.length > 0
 
         return true
       end
 
-      def self.upload_ipa(params, s3_region, s3_subdomain, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl)
+      def self.upload_ipa(s3_client, params, s3_region, s3_subdomain, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl)
 
         s3_path = "v{CFBundleShortVersionString}_b{CFBundleVersion}/" unless s3_path
 
@@ -74,16 +76,13 @@ module Fastlane
         version_template_path = params[:version_template_path]
         version_file_name = params[:version_file_name]
 
-        s3_client = self.s3_client(s3_access_key, s3_secret_access_key, s3_region)
-        bucket = s3_client.buckets[s3_bucket]
-
         url_part = self.expand_path_with_substitutions_from_ipa_plist(ipa_file, s3_path)
 
         ipa_file_basename = File.basename(ipa_file)
         ipa_file_name = "#{url_part}#{ipa_file_basename}"
         ipa_file_data = File.open(ipa_file, 'rb')
 
-        ipa_url = self.upload_file(bucket, ipa_file_name, ipa_file_data, acl)
+        ipa_url = self.upload_file(s3_client, s3_bucket, ipa_file_name, ipa_file_data, acl)
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_IPA_OUTPUT_PATH] = ipa_url
@@ -94,7 +93,7 @@ module Fastlane
           dsym_file_name = "#{url_part}#{dsym_file_basename}"
           dsym_file_data = File.open(dsym_file, 'rb')
 
-          dsym_url = self.upload_file(bucket, dsym_file_name, dsym_file_data, acl)
+          dsym_url = self.upload_file(s3_client, s3_bucket, dsym_file_name, dsym_file_data, acl)
 
           # Setting action and environment variables
           Actions.lane_context[SharedValues::S3_DSYM_OUTPUT_PATH] = dsym_url
@@ -130,12 +129,14 @@ module Fastlane
         version_file_name ||= "version.json"
 
         # grabs module
-        eth = Fastlane::ErbTemplateHelper
+        eth = Fastlane::Helper::AwsS3Helper
 
         # Creates plist from template
         if plist_template_path && File.exist?(plist_template_path)
+          puts "1 - #{plist_template_path}"
           plist_template = eth.load_from_path(plist_template_path)
         else
+          puts "2 - #{Helper.gem_path('fastlane-plugin-aws_s3')}"
           plist_template = eth.load("s3_ios_plist_template")
         end
         plist_render = eth.render(plist_template, {
@@ -184,9 +185,9 @@ module Fastlane
         #
         #####################################
 
-        plist_url = self.upload_file(bucket, plist_file_name, plist_render, acl)
-        html_url = self.upload_file(bucket, html_file_name, html_render, acl)
-        version_url = self.upload_file(bucket, version_file_name, version_render, acl)
+        plist_url = self.upload_file(s3_client, s3_bucket, plist_file_name, plist_render, acl)
+        html_url = self.upload_file(s3_client, s3_bucket, html_file_name, html_render, acl)
+        version_url = self.upload_file(s3_client, s3_bucket, version_file_name, version_render, acl)
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_PLIST_OUTPUT_PATH] = plist_url
@@ -201,9 +202,7 @@ module Fastlane
         UI.success("Successfully uploaded ipa file to '#{Actions.lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}'")
       end
 
-      def self.upload_apk(params, s3_region, s3_subdomain, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl)
-
-
+      def self.upload_apk(s3_client, params, s3_region, s3_subdomain, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl)
         version = get_apk_version(apk_file)
 
         version_code = version[0]
@@ -217,19 +216,13 @@ module Fastlane
         version_template_path = params[:version_template_path]
         version_file_name = params[:version_file_name]
 
-        #s3_client = self.s3_client(s3_access_key, s3_secret_access_key, s3_region)
-        #bucket = s3_client.list_buckets.buckets.find { |bucket| bucket.name == s3_bucket }
-
-        s3 = Aws::S3::Resource.new
-        bucket = s3.bucket(s3_bucket)
-
         url_part = s3_path
 
         apk_file_basename = File.basename(apk_file)
         apk_file_name = "#{url_part}#{apk_file_basename}"
         apk_file_data = File.open(apk_file, 'rb')
 
-        apk_url = self.upload_file(bucket, apk_file_name, apk_file_data, acl)
+        apk_url = self.upload_file(s3_client, s3_bucket, apk_file_name, apk_file_data, acl)
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_APK_OUTPUT_PATH] = apk_url
@@ -250,7 +243,7 @@ module Fastlane
         version_file_name ||= "version.json"
 
         # grabs module
-        eth = Fastlane::Helper::S3Helper
+        eth = Fastlane::Helper::AwsS3Helper
 
         # Creates html from template
         if html_template_path && File.exist?(html_template_path)
@@ -284,8 +277,8 @@ module Fastlane
         #
         #####################################
 
-        html_url = self.upload_file(bucket, html_file_name, html_render, acl)
-        version_url = self.upload_file(bucket, version_file_name, version_render, acl)
+        html_url = self.upload_file(s3_client, s3_bucket, html_file_name, html_render, acl)
+        version_url = self.upload_file(s3_client, s3_bucket, version_file_name, version_render, acl)
 
         Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH] = html_url
         ENV[SharedValues::S3_HTML_OUTPUT_PATH.to_s] = html_url
@@ -334,13 +327,8 @@ module Fastlane
         [versionCode, versionName, name]
       end
 
-      def self.s3_client(s3_access_key, s3_secret_access_key, s3_region)
-        require 'aws-sdk-core'
-        Aws::S3::Client.new
-      end
-
-      def self.upload_file(bucket, file_name, file_data, acl)
-        obj = bucket.object(file_name)
+      def self.upload_file(s3_client, bucket_name, file_name, file_data, acl)
+        bucket = Aws::S3::Bucket.new(bucket_name, client: s3_client)
         obj = bucket.put_object({
           acl: acl,
           key: file_name,

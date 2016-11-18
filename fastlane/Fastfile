@@ -1,6 +1,6 @@
 
 lane :ipa21 do
-  s3(
+  aws_s3(
     bucket: 'fastlane-plugin-s3-ios',
     region: 'us-west-1',
     ipa: './fastlane/ipa21/BanditTheCat.ipa'
@@ -8,7 +8,7 @@ lane :ipa21 do
 end
 
 lane :ipa24 do
-  s3(
+  aws_s3(
     bucket: 'fastlane-plugin-s3-ios',
     region: 'us-west-1',
     ipa: './fastlane/ipa24/BanditTheCat.ipa'
@@ -16,7 +16,7 @@ lane :ipa24 do
 end
 
 lane :apk1 do
-  s3(
+  aws_s3(
     bucket: 'fastlane-plugin-s3-android',
     region: 'us-west-1',
     apk: './fastlane/apk1/BanditTheCat.apk',
@@ -24,7 +24,7 @@ lane :apk1 do
 end
 
 lane :apk2 do
-  s3(
+  aws_s3(
     bucket: 'fastlane-plugin-s3-android',
     region: 'us-west-1',
     apk: './fastlane/apk2/BanditTheCat.apk'

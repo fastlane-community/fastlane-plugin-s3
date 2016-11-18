@@ -12,7 +12,7 @@ describe Fastlane do
       it "raise an error if no S3 access key was given" do
         expect do
           Fastlane::FastFile.new.parse("lane :test do
-            s3({})
+            aws_s3({})
           end").runner.execute(:test)
         end.to raise_error("No S3 access key given, pass using `access_key: 'key'`")
       end
@@ -20,7 +20,7 @@ describe Fastlane do
       it "raise an error if no S3 secret access key was given" do
         expect do
           Fastlane::FastFile.new.parse("lane :test do
-            s3({
+            aws_s3({
               access_key: 'access_key'
               })
           end").runner.execute(:test)
@@ -30,7 +30,7 @@ describe Fastlane do
       it "raise an error if no S3 bucket was given" do
         expect do
           Fastlane::FastFile.new.parse("lane :test do
-            s3({
+            aws_s3({
               access_key: 'access_key',
               secret_access_key: 'secret_access_key'
               })
@@ -41,25 +41,25 @@ describe Fastlane do
       it "raise an error if no IPA was given" do
         expect do
           Fastlane::FastFile.new.parse("lane :test do
-            s3({
+            aws_s3({
               access_key: 'access_key',
               secret_access_key: 'secret_access_key',
               bucket: 'bucket'
               })
           end").runner.execute(:test)
-        end.to raise_error("No IPA file path given, pass using `ipa: 'ipa path'`")
+        end.to raise_error("No IPA or APK file path given, pass using `ipa: 'ipa path'` or `apk: 'apk path'`")
       end
 
       it "raise an error if no IPA was given" do
         expect do
           Fastlane::FastFile.new.parse("lane :test do
-            s3({
+            aws_s3({
               access_key: 'access_key',
               secret_access_key: 'secret_access_key',
               bucket: 'bucket'
               })
           end").runner.execute(:test)
-        end.to raise_error("No IPA file path given, pass using `ipa: 'ipa path'`")
+        end.to raise_error("No IPA or APK file path given, pass using `ipa: 'ipa path'` or `apk: 'apk path'`")
       end
     end
   end

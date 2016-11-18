@@ -293,7 +293,7 @@ module Fastlane
         Actions.lane_context[SharedValues::S3_VERSION_OUTPUT_PATH] = version_url
         ENV[SharedValues::S3_VERSION_OUTPUT_PATH.to_s] = version_url
 
-        UI.success("Successfully uploaded ipa file to '#{Actions.lane_context[SharedValues::S3_APK_OUTPUT_PATH]}'")
+        UI.success("Successfully uploaded apk file to '#{Actions.lane_context[SharedValues::S3_APK_OUTPUT_PATH]}'")
       end
 
       def self.get_apk_version(apk_file)
@@ -325,6 +325,10 @@ module Fastlane
               end
             end
           end
+        end
+
+        if versionCode =~ /^0x[0-9A-Fa-f]+$/ #if is hex
+          versionCode = versionCode.to_i(16)
         end
 
         [versionCode, versionName, name]
@@ -477,7 +481,7 @@ module Fastlane
       end
 
       def self.is_supported?(platform)
-        platform == :ios
+        platform == :ios || platform == :android
       end
     end
   end

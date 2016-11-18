@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'fastlane/plugin/s3/version'
+require 'fastlane/plugin/aws_s3/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'fastlane-plugin-s3'
-  spec.version       = Fastlane::S3::VERSION
+  spec.name          = 'fastlane-plugin-aws_s3'
+  spec.version       = Fastlane::AwsS3::VERSION
   spec.author        = %q{Josh Holtz}
   spec.email         = %q{josh@rokkincat.com}
 

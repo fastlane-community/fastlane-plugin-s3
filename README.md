@@ -16,6 +16,12 @@ Upload a new build to Amazon S3 to distribute the build to beta testers. Works f
 
 The `aws_s3` action can upload both iOS apps (IPAs) and Android apps (APKs). It is **highly** suggested that you make a separate bucket for each of the apps.
 
+Below is what the default generated page looks like that gets hosted on S3.
+
+![Generated page](aws_s3_screenshot.png)
+
+## Example
+
 Add the `aws_s3` action after the `gym` step:
 
 ```ruby
@@ -53,12 +59,6 @@ The uploaded `version.json` file provides an easy way for apps to poll if a new 
     "updateUrl": "itms-services://?action=download-manifest&url=<%= url %>"
 }
 ```
-
-## Example
-
-Check out the [example `Fastfile`](fastlane/Fastfile) to see how to use this plugin. Try it by cloning the repo, running `fastlane install_plugins` and `bundle exec fastlane test`.
-
-**Note to author:** Please set up a sample project to make it easy for users to explore what your plugin does. Provide everything that is necessary to try out the plugin in this project (including a sample Xcode/Android project if necessary)
 
 ## Issues and Feedback
 

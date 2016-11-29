@@ -75,3 +75,10 @@ For more information about how the `fastlane` plugin system works, check out the
 ## About `fastlane`
 
 `fastlane` automates building, testing, and releasing your app for beta and app store distributions. To learn more about `fastlane`, check out [fastlane.tools](https://fastlane.tools).
+
+## Author
+
+Josh Holtz, josh@rokkincat.com, [@joshdholtz](https://twitter.com/joshdholtz)
+
+I'm available for freelance work (Fastlane, iOS, and Android development) :muscle:
+Feel free to contact me :rocket:

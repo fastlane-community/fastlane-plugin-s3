@@ -1,30 +1,30 @@
-# fastlane-plugin-s3 `fastlane` Plugin
+# fastlane-plugin-aws_s3 `fastlane` Plugin
 
-[![fastlane Plugin Badge](https://rawcdn.githack.com/fastlane/fastlane/master/fastlane/assets/plugin-badge.svg)](https://rubygems.org/gems/fastlane-plugin-s3)
+[![fastlane Plugin Badge](https://rawcdn.githack.com/fastlane/fastlane/master/fastlane/assets/plugin-badge.svg)](https://rubygems.org/gems/fastlane-plugin-aws_s3)
 
 ## Getting Started
 
 This project is a [fastlane](https://github.com/fastlane/fastlane) plugin. To get started with fastlane-plugin-s3, add it to your project by running:
 
 ```bash
-fastlane add_plugin s3
+fastlane add_plugin aws_s3
 ```
 
-## About s3
+## About aws_s3
 
 Upload a new build to Amazon S3 to distribute the build to beta testers. Works for both Ad Hoc and Enterprise signed applications. This step will generate the necessary HTML, plist, and version files for you.
 
-The `s3` action can upload both iOS apps (IPAs) and Android apps (APKs). It is **highly** suggested that you make a separate bucket for each of the apps.
+The `aws_s3` action can upload both iOS apps (IPAs) and Android apps (APKs). It is **highly** suggested that you make a separate bucket for each of the apps.
 
-Add the `s3` action after the `gym` step:
+Add the `aws_s3` action after the `gym` step:
 
 ```ruby
-s3
+aws_s3
 ```
 
 You can also customize a lot of options:
 ```ruby
-s3(
+aws_s3(
   # All of these are used to make Shenzhen's `ipa distribute:s3` command
   access_key: ENV['S3_ACCESS_KEY'],               # Required from user.
   secret_access_key: ENV['S3_SECRET_ACCESS_KEY'], # Required from user.
@@ -56,7 +56,7 @@ The uploaded `version.json` file provides an easy way for apps to poll if a new 
 
 ## Example
 
-Check out the [example `Fastfile`](fastlane/Fastfile) to see how to use this plugin. Try it by cloning the repo, running `fastlane install_plugins` and `bundle exec fastlane test`. 
+Check out the [example `Fastfile`](fastlane/Fastfile) to see how to use this plugin. Try it by cloning the repo, running `fastlane install_plugins` and `bundle exec fastlane test`.
 
 **Note to author:** Please set up a sample project to make it easy for users to explore what your plugin does. Provide everything that is necessary to try out the plugin in this project (including a sample Xcode/Android project if necessary)
 

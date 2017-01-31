@@ -148,7 +148,7 @@ module Fastlane
         
         #####################################
         #
-        # html and plist uploading
+        # plist uploading
         #
         #####################################
         plist_url = self.upload_file(s3_client, s3_bucket, plist_file_name, plist_render, acl)
@@ -186,7 +186,7 @@ module Fastlane
 
         #####################################
         #
-        # html and plist uploading
+        # html uploading
         #
         #####################################
         html_url = self.upload_file(s3_client, s3_bucket, html_file_name, html_render, acl)

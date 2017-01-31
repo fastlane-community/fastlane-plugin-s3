@@ -1,4 +1,22 @@
 
+lane :ipa21_multi do
+  aws_s3(
+    bucket: 'fastlane-plugin-s3',
+    region: 'us-east-2',
+    app_directory: 'ios',
+    ipa: './fastlane/ipa21/BanditTheCat.ipa'
+  )
+end
+
+lane :apk1_multi do
+  aws_s3(
+    bucket: 'fastlane-plugin-s3',
+    region: 'us-east-2',
+    app_directory: 'android',
+    apk: './fastlane/apk1/BanditTheCat.apk',
+  )
+end
+
 lane :ipa21 do
   aws_s3(
     bucket: 'fastlane-plugin-s3-ios',

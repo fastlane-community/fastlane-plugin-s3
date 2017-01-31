@@ -36,7 +36,6 @@ module Fastlane
 
         # Pulling parameters for other uses
         s3_region = params[:region]
-        s3_subdomain = params[:region] ? "s3-#{params[:region]}" : "s3"
         s3_access_key = params[:access_key]
         s3_secret_access_key = params[:secret_access_key]
         s3_bucket = params[:bucket]
@@ -60,13 +59,13 @@ module Fastlane
 
         s3_client = Aws::S3::Client.new
 
-        upload_ipa(s3_client, params, s3_region, s3_subdomain, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl) if ipa_file.to_s.length > 0
-        upload_apk(s3_client, params, s3_region, s3_subdomain, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl) if apk_file.to_s.length > 0
+        upload_ipa(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl) if ipa_file.to_s.length > 0
+        upload_apk(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl) if apk_file.to_s.length > 0
 
         return true
       end
 
-      def self.upload_ipa(s3_client, params, s3_region, s3_subdomain, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl)
+      def self.upload_ipa(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl)
 
         s3_path = "v{CFBundleShortVersionString}_b{CFBundleVersion}/" unless s3_path
 
@@ -122,7 +121,6 @@ module Fastlane
 
         # Creating plist and html names
         plist_file_name = "#{url_part}#{title.delete(' ')}.plist"
-        plist_url = "https://#{s3_bucket}.s3-#{s3_region}.amazonaws.com/#{plist_file_name}"
 
         html_file_name ||= "index.html"
 
@@ -147,6 +145,13 @@ module Fastlane
           bundle_version: bundle_version,
           title: title
         })
+        
+        #####################################
+        #
+        # plist uploading
+        #
+        #####################################
+        plist_url = self.upload_file(s3_client, s3_bucket, plist_file_name, plist_render, acl)
 
         # Creates html from template
         if html_template_path && File.exist?(html_template_path)
@@ -181,11 +186,9 @@ module Fastlane
 
         #####################################
         #
-        # html and plist uploading
+        # html uploading
         #
         #####################################
-
-        plist_url = self.upload_file(s3_client, s3_bucket, plist_file_name, plist_render, acl)
         html_url = self.upload_file(s3_client, s3_bucket, html_file_name, html_render, acl)
         version_url = self.upload_file(s3_client, s3_bucket, version_file_name, version_render, acl)
 
@@ -202,7 +205,7 @@ module Fastlane
         UI.success("Successfully uploaded ipa file to '#{Actions.lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}'")
       end
 
-      def self.upload_apk(s3_client, params, s3_region, s3_subdomain, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl)
+      def self.upload_apk(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl)
         version = get_apk_version(apk_file)
 
         version_code = version[0]

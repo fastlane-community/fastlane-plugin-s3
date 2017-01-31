@@ -35,10 +35,11 @@ lane :east do
   aws_s3(
     bucket: 'fastlane-plugin-s3-east',
     region: 'us-east-1',
-    apk: './fastlane/apk2/BanditTheCat.apk'
+    ipa: './fastlane/ipa21/BanditTheCat.ipa'
   )
 end
 
 after_all do
+  puts Action.lane_context[SharedValues::S3_PLIST_OUTPUT_PATH]
   puts Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH]
 end

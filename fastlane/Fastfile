@@ -30,3 +30,15 @@ lane :apk2 do
     apk: './fastlane/apk2/BanditTheCat.apk'
   )
 end
+
+lane :east do
+  aws_s3(
+    bucket: 'fastlane-plugin-s3-east',
+    region: 'us-east-1',
+    apk: './fastlane/apk2/BanditTheCat.apk'
+  )
+end
+
+after_all do
+  puts Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH]
+end

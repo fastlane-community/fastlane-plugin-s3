@@ -154,7 +154,7 @@ module Fastlane
         # plist uploading
         #
         #####################################
-        plist_url = self.upload_file(s3_client, s3_bucket, plist_file_name, plist_render, acl)
+        plist_url = self.upload_file(s3_client, s3_bucket, app_directory, plist_file_name, plist_render, acl)
 
         # Creates html from template
         if html_template_path && File.exist?(html_template_path)
@@ -192,8 +192,8 @@ module Fastlane
         # html uploading
         #
         #####################################
-        html_url = self.upload_file(s3_client, s3_bucket, html_file_name, html_render, acl)
-        version_url = self.upload_file(s3_client, s3_bucket, version_file_name, version_render, acl)
+        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl)
+        version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl)
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_PLIST_OUTPUT_PATH] = plist_url

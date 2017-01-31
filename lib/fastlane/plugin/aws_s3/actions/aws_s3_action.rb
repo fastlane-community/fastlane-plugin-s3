@@ -122,7 +122,7 @@ module Fastlane
 
         # Creating plist and html names
         plist_file_name = "#{url_part}#{title.delete(' ')}.plist"
-        plist_url = "https://#{s3_subdomain}.amazonaws.com/#{s3_bucket}/#{plist_file_name}"
+        plist_url = "https://#{s3_bucket}.s3-#{s3_region}.amazonaws.com/#{plist_file_name}"
 
         html_file_name ||= "index.html"
 

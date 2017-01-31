@@ -1,6 +1,5 @@
 source 'https://rubygems.org'
 
-gem "fastlane", path: '../fastlane'
 gemspec
 
 plugins_path = File.join(File.dirname(__FILE__), 'fastlane', 'Pluginfile')

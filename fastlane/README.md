@@ -5,6 +5,16 @@ fastlane documentation
 sudo gem install fastlane
 ```
 # Available Actions
+### ipa21_multi
+```
+fastlane ipa21_multi
+```
+
+### apk1_multi
+```
+fastlane apk1_multi
+```
+
 ### ipa21
 ```
 fastlane ipa21

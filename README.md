@@ -14,7 +14,7 @@ fastlane add_plugin aws_s3
 
 Upload a new build to Amazon S3 to distribute the build to beta testers. Works for both Ad Hoc and Enterprise signed applications. This step will generate the necessary HTML, plist, and version files for you.
 
-The `aws_s3` action can upload both iOS apps (IPAs) and Android apps (APKs). It is **highly** suggested that you make a separate bucket for each of the apps.
+The `aws_s3` action can upload both iOS apps (IPAs) and Android apps (APKs). If you would like to upload both iOS and Android apps to the same bucket, you can set the `app_directory` parameter so each app goes into their own S3 bucket directory.
 
 Below is what the default generated page looks like that gets hosted on S3.
 
@@ -40,7 +40,9 @@ aws_s3(
   ipa: 'AppName.ipa',                             # Required (if not uploading an APK).
   dsym: 'AppName.app.dSYM.zip',                   # Optional is you use `ipa` to build.
 
-  apk: 'AppName.apk'                              # Required (if not uploading an IPA).
+  apk: 'AppName.apk',                             # Required (if not uploading an IPA).
+  
+  app_directory: 'ios_or_android',                # Optional but nice if you want to put multiple apps in same bucket
 
   path: 'v{CFBundleShortVersionString}_b{CFBundleVersion}/', # This is actually the default.
   upload_metadata: true,                          # Upload version.json, plist and HTML. Set to false to skip uploading of these files.

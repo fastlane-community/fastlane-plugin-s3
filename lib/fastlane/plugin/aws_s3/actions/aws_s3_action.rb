@@ -24,6 +24,7 @@ module Fastlane
         params[:secret_access_key] = config[:secret_access_key]
         params[:bucket] = config[:bucket]
         params[:region] = config[:region]
+        params[:app_directory] = config[:app_directory]
         params[:acl] = config[:acl]
         params[:source] = config[:source]
         params[:path] = config[:path]
@@ -69,6 +70,8 @@ module Fastlane
 
         s3_path = "v{CFBundleShortVersionString}_b{CFBundleVersion}/" unless s3_path
 
+        app_directory = params[:app_directory]
+
         plist_template_path = params[:plist_template_path]
         html_template_path = params[:html_template_path]
         html_file_name = params[:html_file_name]
@@ -81,7 +84,7 @@ module Fastlane
         ipa_file_name = "#{url_part}#{ipa_file_basename}"
         ipa_file_data = File.open(ipa_file, 'rb')
 
-        ipa_url = self.upload_file(s3_client, s3_bucket, ipa_file_name, ipa_file_data, acl)
+        ipa_url = self.upload_file(s3_client, s3_bucket, app_directory, ipa_file_name, ipa_file_data, acl)
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_IPA_OUTPUT_PATH] = ipa_url
@@ -92,7 +95,7 @@ module Fastlane
           dsym_file_name = "#{url_part}#{dsym_file_basename}"
           dsym_file_data = File.open(dsym_file, 'rb')
 
-          dsym_url = self.upload_file(s3_client, s3_bucket, dsym_file_name, dsym_file_data, acl)
+          dsym_url = self.upload_file(s3_client, s3_bucket, app_directory, dsym_file_name, dsym_file_data, acl)
 
           # Setting action and environment variables
           Actions.lane_context[SharedValues::S3_DSYM_OUTPUT_PATH] = dsym_url
@@ -151,7 +154,7 @@ module Fastlane
         # plist uploading
         #
         #####################################
-        plist_url = self.upload_file(s3_client, s3_bucket, plist_file_name, plist_render, acl)
+        plist_url = self.upload_file(s3_client, s3_bucket, app_directory, plist_file_name, plist_render, acl)
 
         # Creates html from template
         if html_template_path && File.exist?(html_template_path)
@@ -189,8 +192,8 @@ module Fastlane
         # html uploading
         #
         #####################################
-        html_url = self.upload_file(s3_client, s3_bucket, html_file_name, html_render, acl)
-        version_url = self.upload_file(s3_client, s3_bucket, version_file_name, version_render, acl)
+        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl)
+        version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl)
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_PLIST_OUTPUT_PATH] = plist_url
@@ -203,6 +206,7 @@ module Fastlane
         ENV[SharedValues::S3_VERSION_OUTPUT_PATH.to_s] = version_url
 
         UI.success("Successfully uploaded ipa file to '#{Actions.lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}'")
+        UI.success("iOS app can be downloaded at '#{Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}'")
       end
 
       def self.upload_apk(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl)
@@ -213,6 +217,8 @@ module Fastlane
         title = version[2]
 
         s3_path = "#{version_code}_#{version_name}/" unless s3_path
+
+        app_directory = params[:app_directory]
 
         html_template_path = params[:html_template_path]
         html_file_name = params[:html_file_name]
@@ -225,7 +231,7 @@ module Fastlane
         apk_file_name = "#{url_part}#{apk_file_basename}"
         apk_file_data = File.open(apk_file, 'rb')
 
-        apk_url = self.upload_file(s3_client, s3_bucket, apk_file_name, apk_file_data, acl)
+        apk_url = self.upload_file(s3_client, s3_bucket, app_directory, apk_file_name, apk_file_data, acl)
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_APK_OUTPUT_PATH] = apk_url
@@ -280,8 +286,8 @@ module Fastlane
         #
         #####################################
 
-        html_url = self.upload_file(s3_client, s3_bucket, html_file_name, html_render, acl)
-        version_url = self.upload_file(s3_client, s3_bucket, version_file_name, version_render, acl)
+        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl)
+        version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl)
 
         Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH] = html_url
         ENV[SharedValues::S3_HTML_OUTPUT_PATH.to_s] = html_url
@@ -290,6 +296,7 @@ module Fastlane
         ENV[SharedValues::S3_VERSION_OUTPUT_PATH.to_s] = version_url
 
         UI.success("Successfully uploaded apk file to '#{Actions.lane_context[SharedValues::S3_APK_OUTPUT_PATH]}'")
+        UI.success("Android app can be downloaded at '#{Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}'")
       end
 
       def self.get_apk_version(apk_file)
@@ -330,7 +337,12 @@ module Fastlane
         [versionCode, versionName, name]
       end
 
-      def self.upload_file(s3_client, bucket_name, file_name, file_data, acl)
+      def self.upload_file(s3_client, bucket_name, app_directory, file_name, file_data, acl)  
+        
+        if app_directory
+          file_name = "#{app_directory}/#{file_name}"
+        end
+        
         bucket = Aws::S3::Bucket.new(bucket_name, client: s3_client)
         obj = bucket.put_object({
           acl: acl,
@@ -435,11 +447,15 @@ module Fastlane
                                        description: "AWS bucket name",
                                        optional: true,
                                        default_value: ENV['AWS_BUCKET_NAME']),
-          FastlaneCore::ConfigItem.new(key: :region,
+         FastlaneCore::ConfigItem.new(key: :region,
                                        env_name: "S3_REGION",
                                        description: "AWS region (for bucket creation) ",
                                        optional: true,
                                        default_value: ENV['AWS_REGION']),
+          FastlaneCore::ConfigItem.new(key: :app_directory,
+                                       env_name: "S3_BUCKET_APP_DIRECTORY",
+                                       description: "Directory in bucket for the app",
+                                       optional: true),
           FastlaneCore::ConfigItem.new(key: :path,
                                        env_name: "S3_PATH",
                                        description: "S3 'path'. Values from Info.plist will be substituded for keys wrapped in {}  ",

@@ -24,6 +24,7 @@ module Fastlane
         params[:secret_access_key] = config[:secret_access_key]
         params[:bucket] = config[:bucket]
         params[:region] = config[:region]
+        params[:expires_in] = config[:expires_in]
         params[:app_directory] = config[:app_directory]
         params[:acl] = config[:acl]
         params[:source] = config[:source]
@@ -70,6 +71,7 @@ module Fastlane
 
         s3_path = "v{CFBundleShortVersionString}_b{CFBundleVersion}/" unless s3_path
 
+        expires_in = params[:expires_in]
         app_directory = params[:app_directory]
 
         plist_template_path = params[:plist_template_path]
@@ -84,7 +86,7 @@ module Fastlane
         ipa_file_name = "#{url_part}#{ipa_file_basename}"
         ipa_file_data = File.open(ipa_file, 'rb')
 
-        ipa_url = self.upload_file(s3_client, s3_bucket, app_directory, ipa_file_name, ipa_file_data, acl)
+        ipa_url = self.upload_file(s3_client, s3_bucket, app_directory, ipa_file_name, ipa_file_data, acl, expires_in)
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_IPA_OUTPUT_PATH] = ipa_url
@@ -95,7 +97,7 @@ module Fastlane
           dsym_file_name = "#{url_part}#{dsym_file_basename}"
           dsym_file_data = File.open(dsym_file, 'rb')
 
-          dsym_url = self.upload_file(s3_client, s3_bucket, app_directory, dsym_file_name, dsym_file_data, acl)
+          dsym_url = self.upload_file(s3_client, s3_bucket, app_directory, dsym_file_name, dsym_file_data, acl, expires_in)
 
           # Setting action and environment variables
           Actions.lane_context[SharedValues::S3_DSYM_OUTPUT_PATH] = dsym_url
@@ -148,13 +150,13 @@ module Fastlane
           bundle_version: bundle_version,
           title: title
         })
-        
+
         #####################################
         #
         # plist uploading
         #
         #####################################
-        plist_url = self.upload_file(s3_client, s3_bucket, app_directory, plist_file_name, plist_render, acl)
+        plist_url = self.upload_file(s3_client, s3_bucket, app_directory, plist_file_name, plist_render, acl, expires_in)
 
         # Creates html from template
         if html_template_path && File.exist?(html_template_path)
@@ -192,8 +194,8 @@ module Fastlane
         # html uploading
         #
         #####################################
-        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl)
-        version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl)
+        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl, expires_in)
+        version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl, expires_in)
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_PLIST_OUTPUT_PATH] = plist_url
@@ -218,6 +220,7 @@ module Fastlane
 
         s3_path = "#{version_code}_#{version_name}/" unless s3_path
 
+        expires_in = params[:expires_in]
         app_directory = params[:app_directory]
 
         html_template_path = params[:html_template_path]
@@ -231,7 +234,7 @@ module Fastlane
         apk_file_name = "#{url_part}#{apk_file_basename}"
         apk_file_data = File.open(apk_file, 'rb')
 
-        apk_url = self.upload_file(s3_client, s3_bucket, app_directory, apk_file_name, apk_file_data, acl)
+        apk_url = self.upload_file(s3_client, s3_bucket, app_directory, apk_file_name, apk_file_data, acl, expires_in)
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_APK_OUTPUT_PATH] = apk_url
@@ -286,8 +289,8 @@ module Fastlane
         #
         #####################################
 
-        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl)
-        version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl)
+        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl, expires_in)
+        version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl, expires_in)
 
         Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH] = html_url
         ENV[SharedValues::S3_HTML_OUTPUT_PATH.to_s] = html_url
@@ -337,12 +340,12 @@ module Fastlane
         [versionCode, versionName, name]
       end
 
-      def self.upload_file(s3_client, bucket_name, app_directory, file_name, file_data, acl)  
-        
+      def self.upload_file(s3_client, bucket_name, app_directory, file_name, file_data, acl, expires_in)
+
         if app_directory
           file_name = "#{app_directory}/#{file_name}"
         end
-        
+
         bucket = Aws::S3::Bucket.new(bucket_name, client: s3_client)
         obj = bucket.put_object({
           acl: acl,
@@ -358,8 +361,13 @@ module Fastlane
           obj = obj.object
         end
 
-        # Return public url
-        obj.public_url.to_s
+        if expires_in
+          # Generate a presigned GET URL
+          obj.presigned_url(:get, expires_in: expires_in).to_s
+        else
+          # Return public url
+          obj.public_url.to_s
+        end
       end
 
       #
@@ -469,7 +477,12 @@ module Fastlane
                                        description: "Uploaded object permissions e.g public_read (default), private, public_read_write, authenticated_read ",
                                        optional: true,
                                        default_value: "public-read"
-                                      )
+                                      ),
+          FastlaneCore::ConfigItem.new(key: :expires_in,
+                                       type: Integer,
+                                       env_name: "S3_URL_EXPIRES_IN",
+                                       description: "Expiration time for presigned S3 URLs",
+                                       optional: true)
         ]
       end
 

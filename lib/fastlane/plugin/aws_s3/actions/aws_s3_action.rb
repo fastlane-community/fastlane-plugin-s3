@@ -1,5 +1,6 @@
 # rubocop:disable Metrics/AbcSize
 require 'fastlane/erb_template_helper'
+include ERB::Util
 require 'ostruct'
 
 module Fastlane
@@ -148,7 +149,7 @@ module Fastlane
           bundle_version: bundle_version,
           title: title
         })
-        
+
         #####################################
         #
         # plist uploading
@@ -337,12 +338,12 @@ module Fastlane
         [versionCode, versionName, name]
       end
 
-      def self.upload_file(s3_client, bucket_name, app_directory, file_name, file_data, acl)  
-        
+      def self.upload_file(s3_client, bucket_name, app_directory, file_name, file_data, acl)
+
         if app_directory
           file_name = "#{app_directory}/#{file_name}"
         end
-        
+
         bucket = Aws::S3::Bucket.new(bucket_name, client: s3_client)
         obj = bucket.put_object({
           acl: acl,

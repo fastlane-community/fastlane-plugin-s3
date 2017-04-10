@@ -2,6 +2,7 @@
 require 'fastlane/erb_template_helper'
 include ERB::Util
 require 'ostruct'
+require 'cgi'
 
 module Fastlane
   module Actions
@@ -122,11 +123,11 @@ module Fastlane
         build_num = info['CFBundleVersion']
         bundle_id = info['CFBundleIdentifier']
         bundle_version = info['CFBundleShortVersionString']
-        title = info['CFBundleName']
+        title = CGI.escapeHTML(info['CFBundleName'])
         full_version = "#{bundle_version}.#{build_num}"
 
         # Creating plist and html names
-        plist_file_name ||= "#{url_part}#{title.delete(' ')}.plist"
+        plist_file_name ||= "#{url_part}#{URI.escape(title.delete(' '))}.plist"
 
         html_file_name ||= "index.html"
 

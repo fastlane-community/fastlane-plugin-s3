@@ -25,6 +25,7 @@ module Fastlane
         params[:access_key] = config[:access_key]
         params[:secret_access_key] = config[:secret_access_key]
         params[:bucket] = config[:bucket]
+        params[:endpoint] = config[:endpoint]
         params[:region] = config[:region]
         params[:app_directory] = config[:app_directory]
         params[:acl] = config[:acl]
@@ -43,6 +44,7 @@ module Fastlane
         s3_access_key = params[:access_key]
         s3_secret_access_key = params[:secret_access_key]
         s3_bucket = params[:bucket]
+        s3_endpoint = params[:endpoint]
         apk_file = params[:apk]
         ipa_file = params[:ipa]
         dsym_file = params[:dsym]
@@ -61,7 +63,11 @@ module Fastlane
           credentials: Aws::Credentials.new(s3_access_key, s3_secret_access_key)
         })
 
-        s3_client = Aws::S3::Client.new
+        s3_client = if s3_endpoint
+                      Aws::S3::Client.new(endpoint: s3_endpoint)
+                    else
+                      Aws::S3::Client.new
+                    end
 
         upload_ipa(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl) if ipa_file.to_s.length > 0
         upload_apk(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl) if apk_file.to_s.length > 0
@@ -477,7 +483,13 @@ module Fastlane
                                        description: "Uploaded object permissions e.g public_read (default), private, public_read_write, authenticated_read ",
                                        optional: true,
                                        default_value: "public-read"
-                                      )
+                                      ),
+          FastlaneCore::ConfigItem.new(key: :endpoint,
+                                       env_name: "S3_ENDPOINT",
+                                       description: "The base endpoint for your S3 bucket",
+                                       optional: true,
+                                       default_value: nil
+                                      ),
         ]
       end
 

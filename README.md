@@ -37,11 +37,12 @@ aws_s3(
   bucket: ENV['S3_BUCKET'],                       # Required from user.
   region: ENV['S3_REGION'],                       # Required from user.
 
+  endpoint: 'https://s3-us-west-1.amazonaws.com', # Optional, for buckets that require a specific endpoint
   ipa: 'AppName.ipa',                             # Required (if not uploading an APK).
   dsym: 'AppName.app.dSYM.zip',                   # Optional is you use `ipa` to build.
 
   apk: 'AppName.apk',                             # Required (if not uploading an IPA).
-  
+
   app_directory: 'ios_or_android',                # Optional but nice if you want to put multiple apps in same bucket
 
   path: 'v{CFBundleShortVersionString}_b{CFBundleVersion}/', # This is actually the default.

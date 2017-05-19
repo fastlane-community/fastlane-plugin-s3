@@ -21,7 +21,9 @@ lane :ipa21 do
   aws_s3(
     bucket: 'fastlane-plugin-s3-ios',
     region: 'us-west-1',
-    ipa: './fastlane/ipa21/BanditTheCat.ipa'
+    ipa: './fastlane/ipa21/BanditTheCat.ipa',
+    source: './fastlane/ipa21/source',
+    skip_html_upload: true
   )
 end
 
@@ -38,7 +40,8 @@ lane :apk1 do
     bucket: 'fastlane-plugin-s3-android',
     region: 'us-west-1',
     apk: './fastlane/apk1/BanditTheCat.apk',
-    source: './fastlane/apk1/source'
+    source: './fastlane/apk1/source',
+    skip_html_upload: true
   )
 end
 

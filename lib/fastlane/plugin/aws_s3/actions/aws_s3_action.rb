@@ -13,6 +13,7 @@ module Fastlane
       S3_PLIST_OUTPUT_PATH ||= :S3_PLIST_OUTPUT_PATH
       S3_HTML_OUTPUT_PATH ||= :S3_HTML_OUTPUT_PATH
       S3_VERSION_OUTPUT_PATH ||= :S3_VERSION_OUTPUT_PATH
+      S3_SOURCE_OUTPUT_PATH ||= :S3_SOURCE_OUTPUT_PATH
     end
 
     class AwsS3Action < Action
@@ -307,6 +308,33 @@ module Fastlane
 
         UI.success("Successfully uploaded apk file to '#{Actions.lane_context[SharedValues::S3_APK_OUTPUT_PATH]}'")
         UI.success("Android app can be downloaded at '#{Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}'")
+        
+        self.upload_source(s3_client, params, s3_bucket, params[:source], s3_path, acl)
+      end
+      
+      def self.upload_source(s3_client, params, s3_bucket, source_directory, s3_path, acl)
+        if source_directory && File.directory?(source_directory)
+          source_directory = File.absolute_path source_directory
+          output_file_path = Tempfile.new('aws_s3_source').path
+          
+          output_file_path = other_action.zip(
+            path: source_directory,
+            output_path: output_file_path.gsub(/(?<!.zip)$/, ".zip")
+          )
+          
+          s3_path = "#{version_code}_#{version_name}/" unless s3_path
+          app_directory = params[:app_directory]
+          url_part = s3_path
+          zip_file_name = "#{url_part}source.zip"
+          
+          output_path_data = File.open("#{output_file_path}", 'rb')
+          source_url = self.upload_file(s3_client, s3_bucket, app_directory, zip_file_name, output_path_data, acl)
+          
+          Actions.lane_context[SharedValues::S3_SOURCE_OUTPUT_PATH] = source_url
+          ENV[SharedValues::S3_SOURCE_OUTPUT_PATH.to_s] = source_url
+          
+          UI.success("Source can be downloaded at '#{Actions.lane_context[SharedValues::S3_SOURCE_OUTPUT_PATH]}'")
+        end
       end
 
       def self.get_apk_version(apk_file)
@@ -499,7 +527,8 @@ module Fastlane
           ['S3_DSYM_OUTPUT_PATH', 'Direct HTTP link to the uploaded dsym file'],
           ['S3_PLIST_OUTPUT_PATH', 'Direct HTTP link to the uploaded plist file'],
           ['S3_HTML_OUTPUT_PATH', 'Direct HTTP link to the uploaded HTML file'],
-          ['S3_VERSION_OUTPUT_PATH', 'Direct HTTP link to the uploaded Version file']
+          ['S3_VERSION_OUTPUT_PATH', 'Direct HTTP link to the uploaded Version file'],
+          ['S3_SOURCE_OUTPUT_PATH', 'Direct HTTP link to the uploaded source ']
         ]
       end
 

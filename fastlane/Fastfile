@@ -38,6 +38,7 @@ lane :apk1 do
     bucket: 'fastlane-plugin-s3-android',
     region: 'us-west-1',
     apk: './fastlane/apk1/BanditTheCat.apk',
+    source: './fastlane/apk1/source'
   )
 end
 

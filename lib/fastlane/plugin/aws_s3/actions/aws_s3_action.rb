@@ -37,6 +37,7 @@ module Fastlane
         params[:plist_file_name] = config[:plist_file_name]
         params[:html_template_path] = config[:html_template_path]
         params[:html_file_name] = config[:html_file_name]
+        params[:skip_html_upload] = config[:skip_html_upload]
         params[:version_template_path] = config[:version_template_path]
         params[:version_file_name] = config[:version_file_name]
 
@@ -145,10 +146,8 @@ module Fastlane
 
         # Creates plist from template
         if plist_template_path && File.exist?(plist_template_path)
-          puts "1 - #{plist_template_path}"
           plist_template = eth.load_from_path(plist_template_path)
         else
-          puts "2 - #{Helper.gem_path('fastlane-plugin-aws_s3')}"
           plist_template = eth.load("s3_ios_plist_template")
         end
         plist_render = eth.render(plist_template, {
@@ -203,21 +202,26 @@ module Fastlane
         # html uploading
         #
         #####################################
-        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl)
+        
+        skip_html = params[:skip_html_upload]
+        
+        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl) unless skip_html
         version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl)
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_PLIST_OUTPUT_PATH] = plist_url
         ENV[SharedValues::S3_PLIST_OUTPUT_PATH.to_s] = plist_url
 
-        Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH] = html_url
-        ENV[SharedValues::S3_HTML_OUTPUT_PATH.to_s] = html_url
+        Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH] = html_url unless skip_html
+        ENV[SharedValues::S3_HTML_OUTPUT_PATH.to_s] = html_url unless skip_html
 
         Actions.lane_context[SharedValues::S3_VERSION_OUTPUT_PATH] = version_url
         ENV[SharedValues::S3_VERSION_OUTPUT_PATH.to_s] = version_url
+        
+        self.upload_source(s3_client, params, s3_bucket, params[:source], s3_path, acl)
 
         UI.success("Successfully uploaded ipa file to '#{Actions.lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}'")
-        UI.success("iOS app can be downloaded at '#{Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}'")
+        UI.success("iOS app can be downloaded at '#{Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}'") unless skip_html
       end
 
       def self.upload_apk(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl)
@@ -296,20 +300,22 @@ module Fastlane
         # html and plist uploading
         #
         #####################################
+        
+        skip_html = params[:skip_html_upload]
 
-        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl)
+        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl) unless skip_html
         version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl)
 
-        Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH] = html_url
-        ENV[SharedValues::S3_HTML_OUTPUT_PATH.to_s] = html_url
+        Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH] = html_url unless skip_html
+        ENV[SharedValues::S3_HTML_OUTPUT_PATH.to_s] = html_url unless skip_html
 
         Actions.lane_context[SharedValues::S3_VERSION_OUTPUT_PATH] = version_url
         ENV[SharedValues::S3_VERSION_OUTPUT_PATH.to_s] = version_url
 
-        UI.success("Successfully uploaded apk file to '#{Actions.lane_context[SharedValues::S3_APK_OUTPUT_PATH]}'")
-        UI.success("Android app can be downloaded at '#{Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}'")
-        
         self.upload_source(s3_client, params, s3_bucket, params[:source], s3_path, acl)
+        
+        UI.success("Successfully uploaded apk file to '#{Actions.lane_context[SharedValues::S3_APK_OUTPUT_PATH]}'")
+        UI.success("Android app can be downloaded at '#{Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}'") unless skip_html
       end
       
       def self.upload_source(s3_client, params, s3_bucket, source_directory, s3_path, acl)
@@ -466,6 +472,12 @@ module Fastlane
                                        env_name: "",
                                        description: "uploaded html filename",
                                        optional: true),
+          FastlaneCore::ConfigItem.new(key: :skip_html_upload,
+                                       env_name: "",
+                                       description: "skip html upload if true",
+                                       optional: true,
+                                       default_value: false,
+                                       is_string: false),
           FastlaneCore::ConfigItem.new(key: :version_template_path,
                                        env_name: "",
                                        description: "version erb template path",

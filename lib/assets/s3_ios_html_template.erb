@@ -57,6 +57,8 @@
         <a href="itms-services://?action=download-manifest&url=<%= url_encode(plist_url) %>" id="text" class="btn btn-lg btn-default" onclick="document.getElementById('finished').id = '';">
           Install <%= title %> <%= bundle_version %> (<%= build_num %>)
         </a>
+        <br>
+        <p>Built on <%= Date.current.strftime('%a, %e %b %Y %H:%M %p') %></p>
       </span>
 
       <!-- <span class="download" id="android">

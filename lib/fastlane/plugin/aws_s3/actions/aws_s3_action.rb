@@ -388,12 +388,22 @@ module Fastlane
         end
 
         bucket = Aws::S3::Bucket.new(bucket_name, client: s3_client)
-        obj = bucket.put_object({
-          acl: acl,
-          key: file_name,
-          body: file_data
-        })
-
+        
+        if file_name.end_with?('apk')
+          obj = bucket.put_object({
+            acl: acl,
+            key: file_name,
+            body: file_data,
+            content_type: 'application/vnd.android.package-archive'
+          })
+        else
+          obj = bucket.put_object({
+            acl: acl,
+            key: file_name,
+            body: file_data
+          })
+        end
+        
         # When you enable versioning on a S3 bucket,
         # writing to an object will create an object version
         # instead of replacing the existing object.

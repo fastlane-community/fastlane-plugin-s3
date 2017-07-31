@@ -251,6 +251,7 @@ module Fastlane
 
         html_template_path = params[:html_template_path]
         html_file_name = params[:html_file_name]
+        generate_html_in_folder = params[:html_in_folder]
         version_template_path = params[:version_template_path]
         version_file_name = params[:version_file_name]
 
@@ -316,7 +317,7 @@ module Fastlane
         #####################################
 
         skip_html = params[:skip_html_upload]
-
+        html_file_name = "#{url_part}#{html_file_name}" if generate_html_in_folder
         html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl, server_side_encryption) unless skip_html
         version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl, server_side_encryption)
 

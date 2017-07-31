@@ -14,7 +14,7 @@ describe Fastlane do
           Fastlane::FastFile.new.parse("lane :test do
             aws_s3({})
           end").runner.execute(:test)
-        end.to raise_error("No S3 access key given, pass using `access_key: 'key'`")
+        end.to raise_error("No S3 access key given, pass using `access_key: 'key'` (or use `aws_profile: 'profile'`)")
       end
 
       it "raise an error if no S3 secret access key was given" do
@@ -24,7 +24,7 @@ describe Fastlane do
               access_key: 'access_key'
               })
           end").runner.execute(:test)
-        end.to raise_error("No S3 secret access key given, pass using `secret_access_key: 'secret key'`")
+        end.to raise_error("No S3 secret access key given, pass using `secret_access_key: 'secret key'` (or use `aws_profile: 'profile'`)")
       end
 
       it "raise an error if no S3 bucket was given" do

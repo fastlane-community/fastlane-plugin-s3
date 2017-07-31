@@ -14,8 +14,7 @@ module Fastlane
       #
       require "erb"
       def self.load(template_name)
-        path = "#{Helper.gem_path('fastlane-plugin-aws_s3')}/lib/assets/#{template_name}.erb"
-        puts "path #{path}"
+        path = "#{gem_path('fastlane-plugin-aws_s3')}/lib/assets/#{template_name}.erb"
         load_from_path(path)
       end
 
@@ -29,6 +28,19 @@ module Fastlane
       def self.render(template, template_vars_hash)
         Fastlane::ErbalT.new(template_vars_hash).render(template)
       end
+      
+      #
+      # Taken from https://github.com/fastlane/fastlane/blob/f0dd4d0f4ecc74d9f7f62e0efc33091d975f2043/fastlane_core/lib/fastlane_core/helper.rb#L248-L259
+      # Unsure best other way to do this so using this logic for now since its deprecated in fastlane proper
+      #
+      def self.gem_path(gem_name)
+        if !Helper.is_test? and Gem::Specification.find_all_by_name(gem_name).any?
+          return Gem::Specification.find_by_name(gem_name).gem_dir
+        else
+          return './'
+        end
+      end
+      
     end
   end
 end

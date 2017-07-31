@@ -59,7 +59,7 @@ module Fastlane
         acl     = params[:acl].to_sym
         server_side_encryption = params[:server_side_encryption]
 
-        unless s3_profile.length > 0
+        unless s3_profile
           UI.user_error!("No S3 access key given, pass using `access_key: 'key'` (or use `aws_profile: 'profile'`)") unless s3_access_key.to_s.length > 0
           UI.user_error!("No S3 secret access key given, pass using `secret_access_key: 'secret key'` (or use `aws_profile: 'profile'`)") unless s3_secret_access_key.to_s.length > 0
         end

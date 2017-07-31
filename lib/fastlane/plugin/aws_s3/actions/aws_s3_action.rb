@@ -38,6 +38,7 @@ module Fastlane
         params[:html_template_path] = config[:html_template_path]
         params[:html_file_name] = config[:html_file_name]
         params[:skip_html_upload] = config[:skip_html_upload]
+        params[:html_in_folder] = config[:html_in_folder]
         params[:version_template_path] = config[:version_template_path]
         params[:version_file_name] = config[:version_file_name]
 
@@ -87,6 +88,7 @@ module Fastlane
         plist_file_name = params[:plist_file_name]
         html_template_path = params[:html_template_path]
         html_file_name = params[:html_file_name]
+        generate_html_in_folder = params[:html_in_folder]
         version_template_path = params[:version_template_path]
         version_file_name = params[:version_file_name]
 
@@ -202,9 +204,9 @@ module Fastlane
         # html uploading
         #
         #####################################
-        
+
         skip_html = params[:skip_html_upload]
-        
+        html_file_name = "#{url_part}#{html_file_name}" if generate_html_in_folder
         html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl) unless skip_html
         version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl)
 
@@ -217,7 +219,7 @@ module Fastlane
 
         Actions.lane_context[SharedValues::S3_VERSION_OUTPUT_PATH] = version_url
         ENV[SharedValues::S3_VERSION_OUTPUT_PATH.to_s] = version_url
-        
+
         self.upload_source(s3_client, params, s3_bucket, params[:source], s3_path, acl)
 
         UI.success("Successfully uploaded ipa file to '#{Actions.lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}'")
@@ -300,7 +302,7 @@ module Fastlane
         # html and plist uploading
         #
         #####################################
-        
+
         skip_html = params[:skip_html_upload]
 
         html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl) unless skip_html
@@ -313,32 +315,32 @@ module Fastlane
         ENV[SharedValues::S3_VERSION_OUTPUT_PATH.to_s] = version_url
 
         self.upload_source(s3_client, params, s3_bucket, params[:source], s3_path, acl)
-        
+
         UI.success("Successfully uploaded apk file to '#{Actions.lane_context[SharedValues::S3_APK_OUTPUT_PATH]}'")
         UI.success("Android app can be downloaded at '#{Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}'") unless skip_html
       end
-      
+
       def self.upload_source(s3_client, params, s3_bucket, source_directory, s3_path, acl)
         if source_directory && File.directory?(source_directory)
           source_directory = File.absolute_path source_directory
           output_file_path = Tempfile.new('aws_s3_source').path
-          
+
           output_file_path = other_action.zip(
             path: source_directory,
             output_path: output_file_path.gsub(/(?<!.zip)$/, ".zip")
           )
-          
+
           s3_path = "#{version_code}_#{version_name}/" unless s3_path
           app_directory = params[:app_directory]
           url_part = s3_path
           zip_file_name = "#{url_part}source.zip"
-          
+
           output_path_data = File.open("#{output_file_path}", 'rb')
           source_url = self.upload_file(s3_client, s3_bucket, app_directory, zip_file_name, output_path_data, acl)
-          
+
           Actions.lane_context[SharedValues::S3_SOURCE_OUTPUT_PATH] = source_url
           ENV[SharedValues::S3_SOURCE_OUTPUT_PATH.to_s] = source_url
-          
+
           UI.success("Source can be downloaded at '#{Actions.lane_context[SharedValues::S3_SOURCE_OUTPUT_PATH]}'")
         end
       end
@@ -475,6 +477,12 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :skip_html_upload,
                                        env_name: "",
                                        description: "skip html upload if true",
+                                       optional: true,
+                                       default_value: false,
+                                       is_string: false),
+          FastlaneCore::ConfigItem.new(key: :html_in_folder,
+                                       env_name: "",
+                                       description: "move the uploaded html file into the version folder",
                                        optional: true,
                                        default_value: false,
                                        is_string: false),

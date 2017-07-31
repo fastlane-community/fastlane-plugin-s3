@@ -3,6 +3,7 @@ require 'fastlane/erb_template_helper'
 include ERB::Util
 require 'ostruct'
 require 'cgi'
+require 'mime-types'
 
 module Fastlane
   module Actions
@@ -393,7 +394,8 @@ module Fastlane
         obj = bucket.put_object({
           acl: acl,
           key: file_name,
-          body: file_data
+          body: file_data,
+          content_type: MIME::Types.type_for(File.extname(file_name)).first.to_s
         })
 
         # When you enable versioning on a S3 bucket,

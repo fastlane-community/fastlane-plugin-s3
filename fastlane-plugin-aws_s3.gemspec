@@ -19,6 +19,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'aws-sdk', '~> 2.3'
   spec.add_dependency 'apktools', '~> 0.7'
+  spec.add_dependency 'mime-types', '~> 3.1'
 
   spec.add_development_dependency 'pry'
   spec.add_development_dependency 'bundler'

@@ -39,6 +39,7 @@ module Fastlane
         params[:plist_template_path] = config[:plist_template_path]
         params[:plist_file_name] = config[:plist_file_name]
         params[:html_template_path] = config[:html_template_path]
+        params[:html_template_params] = config[:html_template_params]
         params[:html_file_name] = config[:html_file_name]
         params[:skip_html_upload] = config[:skip_html_upload]
         params[:html_in_folder] = config[:html_in_folder]
@@ -99,6 +100,8 @@ module Fastlane
         plist_template_path = params[:plist_template_path]
         plist_file_name = params[:plist_file_name]
         html_template_path = params[:html_template_path]
+        html_template_params = params[:html_template_params] || {}
+        html_template_params = {} unless html_template_params.is_a?(Hash)
         html_file_name = params[:html_file_name]
         generate_html_in_folder = params[:html_in_folder]
         version_template_path = params[:version_template_path]
@@ -186,7 +189,7 @@ module Fastlane
         else
           html_template = eth.load("s3_ios_html_template")
         end
-        html_render = eth.render(html_template, {
+        html_render = eth.render(html_template, html_template_params.merge({
           url: plist_url,
           plist_url: plist_url,
           ipa_url: ipa_url,
@@ -194,7 +197,7 @@ module Fastlane
           bundle_id: bundle_id,
           bundle_version: bundle_version,
           title: title
-        })
+        }))
 
         # Creates version from template
         if version_template_path && File.exist?(version_template_path)
@@ -250,6 +253,8 @@ module Fastlane
         app_directory = params[:app_directory]
 
         html_template_path = params[:html_template_path]
+        html_template_params = params[:html_template_params] || {}
+        html_template_params = {} unless html_template_params.is_a?(Hash)
         html_file_name = params[:html_file_name]
         generate_html_in_folder = params[:html_in_folder]
         version_template_path = params[:version_template_path]
@@ -290,12 +295,12 @@ module Fastlane
         else
           html_template = eth.load("s3_android_html_template")
         end
-        html_render = eth.render(html_template, {
+        html_render = eth.render(html_template, html_template_params.merge({
           apk_url: apk_url,
           version_code: version_code,
           version_name: version_name,
           title: title
-        })
+        }))
 
         # Creates version from template
         if version_template_path && File.exist?(version_template_path)
@@ -485,6 +490,10 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :html_template_path,
                                        env_name: "",
                                        description: "html erb template path",
+                                       optional: true),
+          FastlaneCore::ConfigItem.new(key: :html_template_params,
+                                       env_name: "",
+                                       description: "additional params for use in the html template",
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :html_file_name,
                                        env_name: "",

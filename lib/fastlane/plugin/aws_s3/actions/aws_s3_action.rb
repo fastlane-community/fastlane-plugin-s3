@@ -189,7 +189,7 @@ module Fastlane
         else
           html_template = eth.load("s3_ios_html_template")
         end
-        html_render = eth.render(html_template, html_template_params.merge({
+        html_render = eth.render(html_template, {
           url: plist_url,
           plist_url: plist_url,
           ipa_url: ipa_url,
@@ -197,7 +197,7 @@ module Fastlane
           bundle_id: bundle_id,
           bundle_version: bundle_version,
           title: title
-        }))
+        }.merge(html_template_params))
 
         # Creates version from template
         if version_template_path && File.exist?(version_template_path)
@@ -295,12 +295,12 @@ module Fastlane
         else
           html_template = eth.load("s3_android_html_template")
         end
-        html_render = eth.render(html_template, html_template_params.merge({
+        html_render = eth.render(html_template, {
           apk_url: apk_url,
           version_code: version_code,
           version_name: version_name,
           title: title
-        }))
+        }.merge(html_template_params))
 
         # Creates version from template
         if version_template_path && File.exist?(version_template_path)

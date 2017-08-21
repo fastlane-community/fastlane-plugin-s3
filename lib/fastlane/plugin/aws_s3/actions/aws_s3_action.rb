@@ -101,7 +101,6 @@ module Fastlane
         plist_file_name = params[:plist_file_name]
         html_template_path = params[:html_template_path]
         html_template_params = params[:html_template_params] || {}
-        html_template_params = {} unless html_template_params.is_a?(Hash)
         html_file_name = params[:html_file_name]
         generate_html_in_folder = params[:html_in_folder]
         version_template_path = params[:version_template_path]
@@ -254,7 +253,6 @@ module Fastlane
 
         html_template_path = params[:html_template_path]
         html_template_params = params[:html_template_params] || {}
-        html_template_params = {} unless html_template_params.is_a?(Hash)
         html_file_name = params[:html_file_name]
         generate_html_in_folder = params[:html_in_folder]
         version_template_path = params[:version_template_path]
@@ -494,7 +492,8 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :html_template_params,
                                        env_name: "",
                                        description: "additional params for use in the html template",
-                                       optional: true),
+                                       optional: true,
+                                       type: Hash),
           FastlaneCore::ConfigItem.new(key: :html_file_name,
                                        env_name: "",
                                        description: "uploaded html filename",

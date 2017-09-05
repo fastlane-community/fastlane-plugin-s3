@@ -39,6 +39,7 @@ module Fastlane
         params[:plist_template_path] = config[:plist_template_path]
         params[:plist_file_name] = config[:plist_file_name]
         params[:html_template_path] = config[:html_template_path]
+        params[:html_template_params] = config[:html_template_params]
         params[:html_file_name] = config[:html_file_name]
         params[:skip_html_upload] = config[:skip_html_upload]
         params[:html_in_folder] = config[:html_in_folder]
@@ -99,6 +100,7 @@ module Fastlane
         plist_template_path = params[:plist_template_path]
         plist_file_name = params[:plist_file_name]
         html_template_path = params[:html_template_path]
+        html_template_params = params[:html_template_params] || {}
         html_file_name = params[:html_file_name]
         generate_html_in_folder = params[:html_in_folder]
         version_template_path = params[:version_template_path]
@@ -194,7 +196,7 @@ module Fastlane
           bundle_id: bundle_id,
           bundle_version: bundle_version,
           title: title
-        })
+        }.merge(html_template_params))
 
         # Creates version from template
         if version_template_path && File.exist?(version_template_path)
@@ -250,6 +252,7 @@ module Fastlane
         app_directory = params[:app_directory]
 
         html_template_path = params[:html_template_path]
+        html_template_params = params[:html_template_params] || {}
         html_file_name = params[:html_file_name]
         generate_html_in_folder = params[:html_in_folder]
         version_template_path = params[:version_template_path]
@@ -295,7 +298,7 @@ module Fastlane
           version_code: version_code,
           version_name: version_name,
           title: title
-        })
+        }.merge(html_template_params))
 
         # Creates version from template
         if version_template_path && File.exist?(version_template_path)
@@ -486,6 +489,11 @@ module Fastlane
                                        env_name: "",
                                        description: "html erb template path",
                                        optional: true),
+          FastlaneCore::ConfigItem.new(key: :html_template_params,
+                                       env_name: "",
+                                       description: "additional params for use in the html template",
+                                       optional: true,
+                                       type: Hash),
           FastlaneCore::ConfigItem.new(key: :html_file_name,
                                        env_name: "",
                                        description: "uploaded html filename",

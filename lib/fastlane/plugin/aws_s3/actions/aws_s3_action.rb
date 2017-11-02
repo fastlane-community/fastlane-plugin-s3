@@ -45,6 +45,7 @@ module Fastlane
         params[:html_in_folder] = config[:html_in_folder]
         params[:version_template_path] = config[:version_template_path]
         params[:version_file_name] = config[:version_file_name]
+        params[:override_file_name] = config[:override_file_name]
 
         # Pulling parameters for other uses
         s3_region = params[:region]
@@ -105,11 +106,12 @@ module Fastlane
         generate_html_in_folder = params[:html_in_folder]
         version_template_path = params[:version_template_path]
         version_file_name = params[:version_file_name]
+        override_file_name = params[:override_file_name]
 
         url_part = self.expand_path_with_substitutions_from_ipa_plist(ipa_file, s3_path)
 
         ipa_file_basename = File.basename(ipa_file)
-        ipa_file_name = "#{url_part}#{ipa_file_basename}"
+        ipa_file_name = "#{url_part}#{override_file_name ? override_file_name : ipa_file_basename}"
         ipa_file_data = File.open(ipa_file, 'rb')
 
         ipa_url = self.upload_file(s3_client, s3_bucket, app_directory, ipa_file_name, ipa_file_data, acl, server_side_encryption)
@@ -257,11 +259,12 @@ module Fastlane
         generate_html_in_folder = params[:html_in_folder]
         version_template_path = params[:version_template_path]
         version_file_name = params[:version_file_name]
+        override_file_name = params[:override_file_name]
 
         url_part = s3_path
 
         apk_file_basename = File.basename(apk_file)
-        apk_file_name = "#{url_part}#{apk_file_basename}"
+        apk_file_name = "#{url_part}#{override_file_name ? override_file_name : apk_file_basename}"
         apk_file_data = File.open(apk_file, 'rb')
 
         apk_url = self.upload_file(s3_client, s3_bucket, app_directory, apk_file_name, apk_file_data, acl, server_side_encryption)
@@ -569,8 +572,12 @@ module Fastlane
                                        env_name: "S3_ENDPOINT",
                                        description: "The base endpoint for your S3 bucket",
                                        optional: true,
-                                       default_value: nil
-            ),
+                                       default_value: nil),
+          FastlaneCore::ConfigItem.new(key: :override_file_name,
+                                       env_name: "",
+                                       description: "Optional override ipa/apk uploaded file name",
+                                       optional: true,
+                                       default_value: nil),
         ]
       end
 

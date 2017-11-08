@@ -15,6 +15,7 @@ module Fastlane
       S3_HTML_OUTPUT_PATH ||= :S3_HTML_OUTPUT_PATH
       S3_VERSION_OUTPUT_PATH ||= :S3_VERSION_OUTPUT_PATH
       S3_SOURCE_OUTPUT_PATH ||= :S3_SOURCE_OUTPUT_PATH
+      S3_XCARCHIVE_OUTPUT_PATH ||= :S3_XCARCHIVE_OUTPUT_PATH
     end
 
     class AwsS3Action < Action
@@ -23,6 +24,7 @@ module Fastlane
         params = {}
         params[:apk] = config[:apk]
         params[:ipa] = config[:ipa]
+        params[:xcarchive] = config[:xcarchive]
         params[:dsym] = config[:dsym]
         params[:access_key] = config[:access_key]
         params[:secret_access_key] = config[:secret_access_key]
@@ -56,6 +58,7 @@ module Fastlane
         s3_endpoint = params[:endpoint]
         apk_file = params[:apk]
         ipa_file = params[:ipa]
+        xcarchive_file = params[:xcarchive]
         dsym_file = params[:dsym]
         s3_path = params[:path]
         acl     = params[:acl].to_sym
@@ -88,6 +91,7 @@ module Fastlane
 
         upload_ipa(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl, server_side_encryption) if ipa_file.to_s.length > 0
         upload_apk(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl, server_side_encryption) if apk_file.to_s.length > 0
+        upload_xcarchive(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, xcarchive_file, s3_path, acl, server_side_encryption) if xcarchive_file.to_s.length > 0
 
         return true
       end
@@ -240,6 +244,29 @@ module Fastlane
 
         UI.success("Successfully uploaded ipa file to '#{Actions.lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}'")
         UI.success("iOS app can be downloaded at '#{Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}'") unless skip_html
+      end
+
+      def self.upload_xcarchive(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, archive, s3_path, acl, server_side_encryption)
+
+        s3_path = "v{CFBundleShortVersionString}_b{CFBundleVersion}/" unless s3_path
+
+        app_directory = params[:app_directory]
+
+        url_part = self.expand_path_with_substitutions_from_ipa_plist(ipa_file, s3_path)
+
+        archive_name = File.basename(archive, '.xcarchive').gsub(' ','_')
+        archive_zip = "#{archive_name}.zip"
+        original_archive_basename = File.basename(archive)
+        sh "zip -r #{archive_zip} \'#{original_archive_basename}\'"
+        full_archive_zip_name = "#{url_part}#{archive_zip}"
+        archive_zip_data = File.open(archive_zip, 'rb')
+
+        archive_url = self.upload_file(s3_client, s3_bucket, app_directory, full_archive_zip_name, archive_zip_data, acl, server_side_encryption)
+
+        Actions.lane_context[SharedValues::S3_XCARCHIVE_OUTPUT_PATH] = archive_url
+        ENV[SharedValues::S3_XCARCHIVE_OUTPUT_PATH.to_s] = archive_url
+
+        UI.success("Successfully uploaded archive file to '#{Actions.lane_context[SharedValues::S3_XCARCHIVE_OUTPUT_PATH]}'")
       end
 
       def self.upload_apk(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl, server_side_encryption)
@@ -469,6 +496,10 @@ module Fastlane
                                        description: ".ipa file for the build ",
                                        optional: true,
                                        default_value: Actions.lane_context[SharedValues::IPA_OUTPUT_PATH]),
+          FastlaneCore::ConfigItem.new(key: :xcarchive,
+                                       env_name: "",
+                                       description: ".xcarchive file for the build ",
+                                       optional: true),
           FastlaneCore::ConfigItem.new(key: :dsym,
                                        env_name: "",
                                        description: "zipped .dsym package for the build ",
@@ -583,7 +614,9 @@ module Fastlane
 
       def self.output
         [
+          ['S3_APK_OUTPUT_PATH', 'Direct HTTP link to the uploaded apk file'],
           ['S3_IPA_OUTPUT_PATH', 'Direct HTTP link to the uploaded ipa file'],
+          ['S3_XCARCHIVE_OUTPUT_PATH', 'Direct HTTP link to the uploaded xcarchive file '],
           ['S3_DSYM_OUTPUT_PATH', 'Direct HTTP link to the uploaded dsym file'],
           ['S3_PLIST_OUTPUT_PATH', 'Direct HTTP link to the uploaded plist file'],
           ['S3_HTML_OUTPUT_PATH', 'Direct HTTP link to the uploaded HTML file'],

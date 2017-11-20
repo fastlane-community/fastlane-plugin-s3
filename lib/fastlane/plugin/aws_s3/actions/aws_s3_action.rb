@@ -254,11 +254,11 @@ module Fastlane
 
         url_part = self.expand_path_with_substitutions_from_ipa_plist(ipa_file, s3_path)
 
-        archive_name = File.basename(archive, '.xcarchive').gsub(' ','_')
+        archive_name = archive.gsub(' ','_')
         archive_zip = "#{archive_name}.zip"
-        original_archive_basename = File.basename(archive)
-        sh "zip -r #{archive_zip} \'#{original_archive_basename}\'"
-        full_archive_zip_name = "#{url_part}#{archive_zip}"
+        archive_zip_name = File.basename(archive_zip)
+        sh "zip -r #{archive_zip} \'#{archive}\'"
+        full_archive_zip_name = "#{url_part}#{archive_zip_name}"
         archive_zip_data = File.open(archive_zip, 'rb')
 
         archive_url = self.upload_file(s3_client, s3_bucket, app_directory, full_archive_zip_name, archive_zip_data, acl, server_side_encryption)

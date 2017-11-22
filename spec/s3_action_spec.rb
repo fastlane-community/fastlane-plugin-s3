@@ -7,6 +7,7 @@ describe Fastlane do
         end
         Fastlane::Actions.lane_context[Fastlane::Actions::SharedValues::IPA_OUTPUT_PATH] = nil
         Fastlane::Actions.lane_context[Fastlane::Actions::SharedValues::DSYM_OUTPUT_PATH] = nil
+        Fastlane::Actions.lane_context[Fastlane::Actions::SharedValues::XCARCHIVE_OUTPUT_PATH] = nil
       end
 
       it "raise an error if no S3 access key was given" do

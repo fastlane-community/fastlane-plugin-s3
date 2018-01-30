@@ -36,6 +36,7 @@ module Fastlane
         params[:bucket] = config[:bucket]
         params[:endpoint] = config[:endpoint]
         params[:download_endpoint] = config[:download_endpoint]
+        params[:download_endpoint_replacement_regex] = config[:download_endpoint_replacement_regex]
         params[:region] = config[:region]
         params[:app_directory] = config[:app_directory]
         params[:acl] = config[:acl]
@@ -130,13 +131,14 @@ module Fastlane
         version_file_name = params[:version_file_name]
         override_file_name = params[:override_file_name]
         download_endpoint = params[:download_endpoint]
+        download_endpoint_replacement_regex = params[:download_endpoint_replacement_regex]
         url_part = self.expand_path_with_substitutions_from_ipa_plist(ipa_file, s3_path)
 
         ipa_file_basename = File.basename(ipa_file)
         ipa_file_name = "#{url_part}#{override_file_name ? override_file_name : ipa_file_basename}"
         ipa_file_data = File.open(ipa_file, 'rb')
 
-        ipa_url = self.upload_file(s3_client, s3_bucket, app_directory, ipa_file_name, ipa_file_data, acl, server_side_encryption, download_endpoint)
+        ipa_url = self.upload_file(s3_client, s3_bucket, app_directory, ipa_file_name, ipa_file_data, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex)
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_IPA_OUTPUT_PATH] = ipa_url
@@ -147,7 +149,7 @@ module Fastlane
           dsym_file_name = "#{url_part}#{dsym_file_basename}"
           dsym_file_data = File.open(dsym_file, 'rb')
 
-          dsym_url = self.upload_file(s3_client, s3_bucket, app_directory, dsym_file_name, dsym_file_data, acl, server_side_encryption, download_endpoint)
+          dsym_url = self.upload_file(s3_client, s3_bucket, app_directory, dsym_file_name, dsym_file_data, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex)
 
           # Setting action and environment variables
           Actions.lane_context[SharedValues::S3_DSYM_OUTPUT_PATH] = dsym_url
@@ -208,7 +210,7 @@ module Fastlane
         # plist uploading
         #
         #####################################
-        plist_url = self.upload_file(s3_client, s3_bucket, app_directory, plist_file_name, plist_render, acl, server_side_encryption, download_endpoint)
+        plist_url = self.upload_file(s3_client, s3_bucket, app_directory, plist_file_name, plist_render, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex)
 
         # Creates html from template
         if html_template_path && File.exist?(html_template_path)
@@ -251,8 +253,8 @@ module Fastlane
 
         skip_html = params[:skip_html_upload]
         html_file_name = "#{url_part}#{html_file_name}" if generate_html_in_folder
-        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl, server_side_encryption, download_endpoint) unless skip_html
-        version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl, server_side_encryption, download_endpoint)
+        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex) unless skip_html
+        version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex)
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_PLIST_OUTPUT_PATH] = plist_url
@@ -285,8 +287,9 @@ module Fastlane
         full_archive_zip_name = "#{url_part}#{archive_zip_name}"
         archive_zip_data = File.open(archive_zip, 'rb')
         download_endpoint = params[:download_endpoint]
+        download_endpoint_replacement_regex = params[:download_endpoint_replacement_regex]
 
-        archive_url = self.upload_file(s3_client, s3_bucket, app_directory, full_archive_zip_name, archive_zip_data, acl, server_side_encryption, download_endpoint)
+        archive_url = self.upload_file(s3_client, s3_bucket, app_directory, full_archive_zip_name, archive_zip_data, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex)
 
         Actions.lane_context[SharedValues::S3_XCARCHIVE_OUTPUT_PATH] = archive_url
         ENV[SharedValues::S3_XCARCHIVE_OUTPUT_PATH.to_s] = archive_url
@@ -314,6 +317,7 @@ module Fastlane
         version_file_name = params[:version_file_name]
         override_file_name = params[:override_file_name]
         download_endpoint = params[:download_endpoint]
+        download_endpoint_replacement_regex = params[:download_endpoint_replacement_regex]
 
         url_part = s3_path
 
@@ -321,7 +325,7 @@ module Fastlane
         apk_file_name = "#{url_part}#{override_file_name ? override_file_name : apk_file_basename}"
         apk_file_data = File.open(apk_file, 'rb')
 
-        apk_url = self.upload_file(s3_client, s3_bucket, app_directory, apk_file_name, apk_file_data, acl, server_side_encryption, download_endpoint)
+        apk_url = self.upload_file(s3_client, s3_bucket, app_directory, apk_file_name, apk_file_data, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex)
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_APK_OUTPUT_PATH] = apk_url
@@ -380,8 +384,8 @@ module Fastlane
 
         skip_html = params[:skip_html_upload]
         html_file_name = "#{url_part}#{html_file_name}" if generate_html_in_folder
-        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl, server_side_encryption, download_endpoint) unless skip_html
-        version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl, server_side_encryption, download_endpoint)
+        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex) unless skip_html
+        version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex)
 
         Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH] = html_url unless skip_html
         ENV[SharedValues::S3_HTML_OUTPUT_PATH.to_s] = html_url unless skip_html
@@ -412,7 +416,8 @@ module Fastlane
 
           output_path_data = File.open("#{output_file_path}", 'rb')
           download_endpoint = params[:download_endpoint]
-          source_url = self.upload_file(s3_client, s3_bucket, app_directory, zip_file_name, output_path_data, acl, server_side_encryption, download_endpoint)
+          download_endpoint_replacement_regex = params[:download_endpoint_replacement_regex]
+          source_url = self.upload_file(s3_client, s3_bucket, app_directory, zip_file_name, output_path_data, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex)
 
           Actions.lane_context[SharedValues::S3_SOURCE_OUTPUT_PATH] = source_url
           ENV[SharedValues::S3_SOURCE_OUTPUT_PATH.to_s] = source_url
@@ -504,7 +509,7 @@ module Fastlane
 
 
 
-      def self.upload_file(s3_client, bucket_name, app_directory, file_name, file_data, acl, server_side_encryption, download_endpoint)
+      def self.upload_file(s3_client, bucket_name, app_directory, file_name, file_data, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex)
 
         if app_directory
           file_name = "#{app_directory}/#{file_name}"
@@ -533,7 +538,7 @@ module Fastlane
 
         # if a download endpoint is provided, then swap it in before returning
         if download_endpoint
-          url = url.gsub(/^https*:\/\/[^\/]*/, download_endpoint)
+          url = url.gsub(Regexp.new(download_endpoint_replacement_regex), download_endpoint)
         end
 
         return url
@@ -701,6 +706,11 @@ module Fastlane
                                        description: "The endpoint for downloads from your S3 bucket",
                                        optional: true,
                                        default_value: nil),
+          FastlaneCore::ConfigItem.new(key: :download_endpoint_replacement_regex,
+                                       env_name: "S3_DOWNLOAD_ENDPOINT_REPLACEMENT_REGEX",
+                                       description: "A regex used to determine which part of the S3 URL to replace with S3_DOWNLOAD_ENDPOINT",
+                                       optional: true,
+                                       default_value: '^https?://[^/]*'),
           FastlaneCore::ConfigItem.new(key: :override_file_name,
                                        env_name: "",
                                        description: "Optional override ipa/apk uploaded file name",

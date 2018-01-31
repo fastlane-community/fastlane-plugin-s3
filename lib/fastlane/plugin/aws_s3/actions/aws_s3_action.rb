@@ -45,6 +45,9 @@ module Fastlane
         params[:html_file_name] = config[:html_file_name]
         params[:skip_html_upload] = config[:skip_html_upload]
         params[:html_in_folder] = config[:html_in_folder]
+        params[:html_in_root] = config[:html_in_root]
+        params[:version_in_folder] = config[:version_in_folder]
+        params[:version_in_root] = config[:version_in_root]
         params[:version_template_path] = config[:version_template_path]
         params[:version_file_name] = config[:version_file_name]
         params[:override_file_name] = config[:override_file_name]
@@ -108,6 +111,9 @@ module Fastlane
         html_template_params = params[:html_template_params] || {}
         html_file_name = params[:html_file_name]
         generate_html_in_folder = params[:html_in_folder]
+        generate_html_in_root = params[:html_in_root]
+        generate_version_in_folder = params[:version_in_folder]
+        generate_version_in_root = params[:version_in_root]
         version_template_path = params[:version_template_path]
         version_file_name = params[:version_file_name]
         override_file_name = params[:override_file_name]
@@ -226,9 +232,23 @@ module Fastlane
         #####################################
 
         skip_html = params[:skip_html_upload]
-        html_file_name = "#{url_part}#{html_file_name}" if generate_html_in_folder
-        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl, server_side_encryption) unless skip_html
-        version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl, server_side_encryption)
+
+        unless skip_html
+          if generate_html_in_root
+            html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl, server_side_encryption)
+          end
+          if generate_html_in_folder
+            html_file_name = "#{url_part}#{html_file_name}"
+            html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl, server_side_encryption)
+          end
+        end
+        if generate_version_in_root
+          version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl, server_side_encryption)
+        end
+        if generate_version_in_folder
+          version_file_name = "#{url_part}#{version_file_name}"
+          version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl, server_side_encryption)
+        end
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_PLIST_OUTPUT_PATH] = plist_url
@@ -284,6 +304,9 @@ module Fastlane
         html_template_params = params[:html_template_params] || {}
         html_file_name = params[:html_file_name]
         generate_html_in_folder = params[:html_in_folder]
+        generate_html_in_root = params[:html_in_root]
+        generate_version_in_folder = params[:version_in_folder]
+        generate_version_in_root = params[:version_in_root]
         version_template_path = params[:version_template_path]
         version_file_name = params[:version_file_name]
         override_file_name = params[:override_file_name]
@@ -350,9 +373,22 @@ module Fastlane
         #####################################
 
         skip_html = params[:skip_html_upload]
-        html_file_name = "#{url_part}#{html_file_name}" if generate_html_in_folder
-        html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl, server_side_encryption) unless skip_html
-        version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl, server_side_encryption)
+        unless skip_html
+          if generate_html_in_root
+            html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl, server_side_encryption)
+          end
+          if generate_html_in_folder
+            html_file_name = "#{url_part}#{html_file_name}"
+            html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl, server_side_encryption)
+          end
+        end
+        if generate_version_in_root
+          version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl, server_side_encryption)
+        end
+        if generate_version_in_folder
+          version_file_name = "#{url_part}#{version_file_name}"
+          version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl, server_side_encryption)
+        end
 
         Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH] = html_url unless skip_html
         ENV[SharedValues::S3_HTML_OUTPUT_PATH.to_s] = html_url unless skip_html
@@ -541,9 +577,27 @@ module Fastlane
                                        is_string: false),
           FastlaneCore::ConfigItem.new(key: :html_in_folder,
                                        env_name: "",
-                                       description: "move the uploaded html file into the version folder",
+                                       description: "upload the html file into the version folder",
                                        optional: true,
                                        default_value: false,
+                                       is_string: false),
+          FastlaneCore::ConfigItem.new(key: :html_in_root,
+                                       env_name: "",
+                                       description: "upload the html file into the 'root' folder",
+                                       optional: true,
+                                       default_value: true,
+                                       is_string: false),
+          FastlaneCore::ConfigItem.new(key: :version_in_folder,
+                                       env_name: "",
+                                       description: "upload the version file into the version folder",
+                                       optional: true,
+                                       default_value: false,
+                                       is_string: false),
+          FastlaneCore::ConfigItem.new(key: :version_in_root,
+                                       env_name: "",
+                                       description: "upload the html file into the 'root' folder",
+                                       optional: true,
+                                       default_value: true,
                                        is_string: false),
           FastlaneCore::ConfigItem.new(key: :version_template_path,
                                        env_name: "",

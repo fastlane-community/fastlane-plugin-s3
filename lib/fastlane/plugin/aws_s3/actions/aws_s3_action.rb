@@ -217,7 +217,7 @@ module Fastlane
           build_num: build_num,
           bundle_version: bundle_version,
           full_version: full_version
-        })
+        }.merge(html_template_params))
 
         #####################################
         #
@@ -341,7 +341,7 @@ module Fastlane
           version_code: version_code,
           version_name: version_name,
           full_version: "#{version_code}_#{version_name}"
-        })
+        }.merge(html_template_params))
 
         #####################################
         #

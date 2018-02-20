@@ -47,6 +47,7 @@ module Fastlane
         params[:html_in_folder] = config[:html_in_folder]
         params[:version_template_path] = config[:version_template_path]
         params[:version_file_name] = config[:version_file_name]
+        params[:version_template_params] = config[:version_template_params]
         params[:override_file_name] = config[:override_file_name]
 
         # Pulling parameters for other uses
@@ -109,6 +110,7 @@ module Fastlane
         html_file_name = params[:html_file_name]
         generate_html_in_folder = params[:html_in_folder]
         version_template_path = params[:version_template_path]
+        version_template_params = params[:version_template_params] || {}
         version_file_name = params[:version_file_name]
         override_file_name = params[:override_file_name]
 
@@ -217,7 +219,7 @@ module Fastlane
           build_num: build_num,
           bundle_version: bundle_version,
           full_version: full_version
-        })
+        }.merge(version_template_params))
 
         #####################################
         #
@@ -285,6 +287,7 @@ module Fastlane
         html_file_name = params[:html_file_name]
         generate_html_in_folder = params[:html_in_folder]
         version_template_path = params[:version_template_path]
+        version_template_params = params[:version_template_params] || {}
         version_file_name = params[:version_file_name]
         override_file_name = params[:override_file_name]
 
@@ -341,7 +344,7 @@ module Fastlane
           version_code: version_code,
           version_name: version_name,
           full_version: "#{version_code}_#{version_name}"
-        })
+        }.merge(version_template_params))
 
         #####################################
         #
@@ -549,6 +552,11 @@ module Fastlane
                                        env_name: "",
                                        description: "version erb template path",
                                        optional: true),
+          FastlaneCore::ConfigItem.new(key: :version_template_params,
+                                       env_name: "",
+                                       description: "additional params for use in the version template",
+                                       optional: true,
+                                       type: Hash),
           FastlaneCore::ConfigItem.new(key: :version_file_name,
                                        env_name: "",
                                        description: "uploaded version filename",

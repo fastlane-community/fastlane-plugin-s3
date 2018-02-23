@@ -74,21 +74,14 @@ module Fastlane
         UI.user_error!("Please only give IPA path or APK path (not both)") if ipa_file.to_s.length > 0 && apk_file.to_s.length > 0
 
         require 'aws-sdk'
-        if s3_profile
-          creds = Aws::SharedCredentials.new(profile_name: s3_profile);
-        else
-          creds = Aws::Credentials.new(s3_access_key, s3_secret_access_key)
-        end
-        Aws.config.update({
-          region: s3_region,
-          credentials: creds
-        })
 
-        s3_client = if s3_endpoint
-                      Aws::S3::Client.new(endpoint: s3_endpoint)
-                    else
-                      Aws::S3::Client.new
-                    end
+        client_cfg = {}
+        client_cfg[:region] = s3_region if s3_region
+        client_cfg[:endpoint] = s3_endpoint if s3_endpoint
+        client_cfg[:profile] = s3_profile if s3_profile
+        client_cfg[:credentials] = Aws::Credentials.new(s3_access_key, s3_secret_access_key) if s3_access_key && s3_secret_access_key
+
+        s3_client = Aws::S3::Client.new(client_cfg)
 
         upload_ipa(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl, server_side_encryption) if ipa_file.to_s.length > 0
         upload_apk(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl, server_side_encryption) if apk_file.to_s.length > 0

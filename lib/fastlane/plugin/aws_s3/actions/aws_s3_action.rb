@@ -447,8 +447,9 @@ module Fastlane
         files.each do |file|
           file_basename = File.basename(file)
           file_data = File.open(file, 'rb')
+          file_name = url_part + '/' + file_basename
 
-          file_url = self.upload_file(s3_client, s3_bucket, app_directory, file_basename, file_data, acl, server_side_encryption)
+          file_url = self.upload_file(s3_client, s3_bucket, app_directory, file_name, file_data, acl, server_side_encryption)
 
           # Setting action and environment variables
           Actions.lane_context[SharedValues::S3_FILES_OUTPUT_PATHS] << file_url

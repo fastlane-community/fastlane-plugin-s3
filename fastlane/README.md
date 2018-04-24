@@ -64,6 +64,16 @@ fastlane apk2
 fastlane east
 ```
 
+### files_no_path
+```
+fastlane files_no_path
+```
+
+### files
+```
+fastlane files
+```
+
 
 ----
 

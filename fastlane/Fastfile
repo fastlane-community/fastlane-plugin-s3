@@ -63,6 +63,31 @@ lane :east do
   )
 end
 
+lane :files_no_path do
+  aws_s3(
+    bucket: 'fastlane-plugin-s3-east',
+    region: 'us-east-1',
+    files: [
+      './fastlane/testfile1.txt',
+      './fastlane/testfile2.txt',
+    ],
+    folder: './fastlane/testdir1'
+  )
+end
+
+lane :files do
+  aws_s3(
+    bucket: 'fastlane-plugin-s3-east',
+    region: 'us-east-1',
+    path: 'dafiles',
+    files: [
+      './fastlane/testfile1.txt',
+      './fastlane/testfile2.txt',
+    ],
+    folder: './fastlane/testdir1'
+  )
+end
+
 after_all do
   puts Action.lane_context[SharedValues::S3_PLIST_OUTPUT_PATH]
   puts Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH]

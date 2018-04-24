@@ -74,7 +74,7 @@ module Fastlane
 
         unless s3_profile
           UI.user_error!("No S3 access key given, pass using `access_key: 'key'` (or use `aws_profile: 'profile'`)") unless s3_access_key.to_s.length > 0
-          UI.user_error!("No S3 secret access key given, pass using `secret_access_key: 'secret key'` (or use `aws_profile: 'profile'`") unless s3_secret_access_key.to_s.length > 0
+          UI.user_error!("No S3 secret access key given, pass using `secret_access_key: 'secret key'` (or use `aws_profile: 'profile'`)") unless s3_secret_access_key.to_s.length > 0
         end
         UI.user_error!("No S3 bucket given, pass using `bucket: 'bucket'`") unless s3_bucket.to_s.length > 0
         UI.user_error!("No IPA, APK file, folder or files paths given, pass using `ipa: 'ipa path'` or `apk: 'apk path'` or `folder: 'folder path' or files: [`file path1`, `file path 2`]") if ipa_file.to_s.length == 0 && apk_file.to_s.length == 0 && files.to_a.count == 0 && folder.to_s.length == 0
@@ -443,7 +443,7 @@ module Fastlane
 
       def self.upload_files(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, files, s3_path, acl, server_side_encryption)
 
-        s3_path = "/files/" unless s3_path
+        s3_path = "files" unless s3_path
 
         app_directory = params[:app_directory]
         url_part = s3_path
@@ -462,6 +462,8 @@ module Fastlane
       end
 
       def self.upload_folder(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, folder, s3_path, acl, server_side_encryption)
+
+        s3_path = "files" unless s3_path
 
         s3_path = s3_path.to_s + '/' + File.basename(folder)
         url_part = s3_path

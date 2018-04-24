@@ -4,6 +4,7 @@ include ERB::Util
 require 'ostruct'
 require 'cgi'
 require 'mime-types'
+require 'pathname'
 
 module Fastlane
   module Actions
@@ -16,6 +17,8 @@ module Fastlane
       S3_VERSION_OUTPUT_PATH ||= :S3_VERSION_OUTPUT_PATH
       S3_SOURCE_OUTPUT_PATH ||= :S3_SOURCE_OUTPUT_PATH
       S3_XCARCHIVE_OUTPUT_PATH ||= :S3_XCARCHIVE_OUTPUT_PATH
+      S3_FILES_OUTPUT_PATHS ||= :S3_FILES_OUTPUT_PATHS
+      S3_FOLDER_OUTPUT_PATH ||= :S3_FOLDER_OUTPUT_PATH
     end
 
     class AwsS3Action < Action
@@ -49,6 +52,8 @@ module Fastlane
         params[:version_file_name] = config[:version_file_name]
         params[:version_template_params] = config[:version_template_params]
         params[:override_file_name] = config[:override_file_name]
+        params[:files] = config[:files]
+        params[:folder] = config[:folder]
 
         # Pulling parameters for other uses
         s3_region = params[:region]
@@ -60,6 +65,8 @@ module Fastlane
         apk_file = params[:apk]
         ipa_file = params[:ipa]
         xcarchive_file = params[:xcarchive]
+        files = params[:files]
+        folder = params[:folder]
         dsym_file = params[:dsym]
         s3_path = params[:path]
         acl     = params[:acl].to_sym
@@ -70,7 +77,7 @@ module Fastlane
           UI.user_error!("No S3 secret access key given, pass using `secret_access_key: 'secret key'` (or use `aws_profile: 'profile'`)") unless s3_secret_access_key.to_s.length > 0
         end
         UI.user_error!("No S3 bucket given, pass using `bucket: 'bucket'`") unless s3_bucket.to_s.length > 0
-        UI.user_error!("No IPA or APK file path given, pass using `ipa: 'ipa path'` or `apk: 'apk path'`") if ipa_file.to_s.length == 0 && apk_file.to_s.length == 0
+        UI.user_error!("No IPA, APK file, folder or files paths given, pass using `ipa: 'ipa path'` or `apk: 'apk path'` or `folder: 'folder path' or files: [`file path1`, `file path 2`]") if ipa_file.to_s.length == 0 && apk_file.to_s.length == 0 && files.to_a.count == 0 && folder.to_s.length == 0
         UI.user_error!("Please only give IPA path or APK path (not both)") if ipa_file.to_s.length > 0 && apk_file.to_s.length > 0
 
         require 'aws-sdk'
@@ -80,19 +87,21 @@ module Fastlane
           creds = Aws::Credentials.new(s3_access_key, s3_secret_access_key)
         end
         Aws.config.update({
-          region: s3_region,
-          credentials: creds
+                            region: s3_region,
+                            credentials: creds
         })
 
         s3_client = if s3_endpoint
-                      Aws::S3::Client.new(endpoint: s3_endpoint)
-                    else
-                      Aws::S3::Client.new
-                    end
+          Aws::S3::Client.new(endpoint: s3_endpoint)
+        else
+          Aws::S3::Client.new
+        end
 
         upload_ipa(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl, server_side_encryption) if ipa_file.to_s.length > 0
         upload_apk(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl, server_side_encryption) if apk_file.to_s.length > 0
         upload_xcarchive(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, xcarchive_file, s3_path, acl, server_side_encryption) if xcarchive_file.to_s.length > 0
+        upload_files(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, files, s3_path, acl, server_side_encryption) if files.to_a.count > 0
+        upload_folder(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, folder, s3_path, acl, server_side_encryption) if folder.to_s.length > 0
 
         return true
       end
@@ -432,6 +441,51 @@ module Fastlane
         [versionCode, versionName, name]
       end
 
+      def self.upload_files(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, files, s3_path, acl, server_side_encryption)
+
+        s3_path = "files" unless s3_path
+
+        app_directory = params[:app_directory]
+        url_part = s3_path
+
+        Actions.lane_context[SharedValues::S3_FILES_OUTPUT_PATHS] = []
+        files.each do |file|
+          file_basename = File.basename(file)
+          file_data = File.open(file, 'rb')
+          file_name = url_part + '/' + file_basename
+
+          file_url = self.upload_file(s3_client, s3_bucket, app_directory, file_name, file_data, acl, server_side_encryption)
+
+          # Setting action and environment variables
+          Actions.lane_context[SharedValues::S3_FILES_OUTPUT_PATHS] << file_url
+        end
+      end
+
+      def self.upload_folder(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, folder, s3_path, acl, server_side_encryption)
+
+        s3_path = "files" unless s3_path
+
+        s3_path = s3_path.to_s + '/' + File.basename(folder)
+        url_part = s3_path
+        app_directory = params[:app_directory]
+
+        unless File.directory?(folder)
+          UI.user_error!("Invalid folder parameter. `#{File.expand_path(folder)} is not a directory!")
+        end
+
+        Dir.glob("#{folder}/**/*") do |file|
+          next if File.directory?(file)
+          file_data = File.open(file, 'rb')
+          file_relative_path_to_folder = Pathname.new(File.expand_path(file)).relative_path_from(Pathname.new(File.expand_path(folder))).to_s
+          file_name = url_part + '/' + file_relative_path_to_folder
+
+          file_url = self.upload_file(s3_client, s3_bucket, app_directory, file_name, file_data, acl, server_side_encryption)
+          Actions.lane_context[SharedValues::S3_FOLDER_OUTPUT_PATH] = file_url.gsub('/' + file_relative_path_to_folder, '')
+        end
+      end
+
+
+
       def self.upload_file(s3_client, bucket_name, app_directory, file_name, file_data, acl, server_side_encryption)
 
         if app_directory
@@ -618,6 +672,18 @@ module Fastlane
                                        description: "Optional override ipa/apk uploaded file name",
                                        optional: true,
                                        default_value: nil),
+          FastlaneCore::ConfigItem.new(key: :files,
+                                       env_name: "",
+                                       description: "Collection: Allows you to simply upload any files to s3. Ex: ['filename1', filename2]",
+                                       is_string: false,
+                                       optional: true,
+                                       default_value: nil),
+          FastlaneCore::ConfigItem.new(key: :folder,
+                                       env_name: "",
+                                       description: "Path to the folder you want to upload",
+                                       is_string: true,
+                                       optional: true,
+                                       default_value: nil),
         ]
       end
 
@@ -630,7 +696,9 @@ module Fastlane
           ['S3_PLIST_OUTPUT_PATH', 'Direct HTTP link to the uploaded plist file'],
           ['S3_HTML_OUTPUT_PATH', 'Direct HTTP link to the uploaded HTML file'],
           ['S3_VERSION_OUTPUT_PATH', 'Direct HTTP link to the uploaded Version file'],
-          ['S3_SOURCE_OUTPUT_PATH', 'Direct HTTP link to the uploaded source ']
+          ['S3_SOURCE_OUTPUT_PATH', 'Direct HTTP link to the uploaded source '],
+          ['S3_FILES_OUTPUT_PATHS', 'Collection of HTTP links to the uploaded files'],
+          ['S3_FOLDER_OUTPUT_PATH', 'Direct HTTP link to the uploaded folder']
         ]
       end
 

@@ -54,7 +54,7 @@ module Fastlane
         params[:override_file_name] = config[:override_file_name]
         params[:files] = config[:files]
         params[:folder] = config[:folder]
-        params[:skip_xcarchive_upload] = config[:skip_xcarchive_upload]
+        params[:obtain_path_from_gym] = config[:obtain_path_from_gym]
 
         # Pulling parameters for other uses
         s3_region = params[:region]
@@ -72,7 +72,7 @@ module Fastlane
         s3_path = params[:path]
         acl     = params[:acl].to_sym
         server_side_encryption = params[:server_side_encryption]
-        skip_xcarchive_upload = params[:skip_xcarchive_upload]
+        obtain_path_from_gym = params[:obtain_path_from_gym]
 
         unless s3_profile
           UI.user_error!("No S3 access key given, pass using `access_key: 'key'` (or use `aws_profile: 'profile'`)") unless s3_access_key.to_s.length > 0
@@ -99,9 +99,13 @@ module Fastlane
           Aws::S3::Client.new
         end
 
+        if obtain_path_from_gym
+          xcarchive_file = Actions.lane_context[SharedValues::XCODEBUILD_ARCHIVE]
+        end
+
         upload_ipa(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl, server_side_encryption) if ipa_file.to_s.length > 0
         upload_apk(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl, server_side_encryption) if apk_file.to_s.length > 0
-        upload_xcarchive(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, xcarchive_file, s3_path, acl, server_side_encryption) if xcarchive_file.to_s.length > 0 unless skip_xcarchive_upload
+        upload_xcarchive(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, xcarchive_file, s3_path, acl, server_side_encryption) if xcarchive_file.to_s.length > 0
         upload_files(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, files, s3_path, acl, server_side_encryption) if files.to_a.count > 0
         upload_folder(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, folder, s3_path, acl, server_side_encryption) if folder.to_s.length > 0
 
@@ -557,9 +561,8 @@ module Fastlane
                                        default_value: Actions.lane_context[SharedValues::IPA_OUTPUT_PATH]),
           FastlaneCore::ConfigItem.new(key: :xcarchive,
                                        env_name: "",
-                                       description: ".xcarchive file for the build ",
-                                       optional: true,
-                                       default_value: Actions.lane_context[SharedValues::XCODEBUILD_ARCHIVE]),
+                                       description: ".xcarchive file for the build. If provided, it will be upload to s3.",
+                                       optional: true),
           FastlaneCore::ConfigItem.new(key: :dsym,
                                        env_name: "",
                                        description: "zipped .dsym package for the build ",
@@ -686,9 +689,9 @@ module Fastlane
                                        is_string: true,
                                        optional: true,
                                        default_value: nil),
-          FastlaneCore::ConfigItem.new(key: :skip_xcarchive_upload,
+          FastlaneCore::ConfigItem.new(key: :obtain_path_from_gym,
                                        env_name: "",
-                                       description: "To skip upload of XCode Archive to s3",
+                                       description: "Obtain XCode Archive path from gym",
                                        optional: true,
                                        default_value: false)
         ]

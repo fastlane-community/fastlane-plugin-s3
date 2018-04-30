@@ -561,7 +561,7 @@ module Fastlane
                                        default_value: Actions.lane_context[SharedValues::IPA_OUTPUT_PATH]),
           FastlaneCore::ConfigItem.new(key: :xcarchive,
                                        env_name: "",
-                                       description: ".xcarchive file for the build. If provided, it will be upload to s3.",
+                                       description: ".xcarchive file for the build. If provided, it will be upload to s3",
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :dsym,
                                        env_name: "",

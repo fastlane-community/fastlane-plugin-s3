@@ -54,7 +54,6 @@ module Fastlane
         params[:override_file_name] = config[:override_file_name]
         params[:files] = config[:files]
         params[:folder] = config[:folder]
-        params[:obtain_path_from_gym] = config[:obtain_path_from_gym]
 
         # Pulling parameters for other uses
         s3_region = params[:region]
@@ -72,7 +71,6 @@ module Fastlane
         s3_path = params[:path]
         acl     = params[:acl].to_sym
         server_side_encryption = params[:server_side_encryption]
-        obtain_path_from_gym = params[:obtain_path_from_gym]
 
         unless s3_profile
           UI.user_error!("No S3 access key given, pass using `access_key: 'key'` (or use `aws_profile: 'profile'`)") unless s3_access_key.to_s.length > 0
@@ -99,7 +97,7 @@ module Fastlane
           Aws::S3::Client.new
         end
 
-        if obtain_path_from_gym
+        if xcarchive_file.nil?
           xcarchive_file = Actions.lane_context[SharedValues::XCODEBUILD_ARCHIVE]
         end
 
@@ -561,8 +559,9 @@ module Fastlane
                                        default_value: Actions.lane_context[SharedValues::IPA_OUTPUT_PATH]),
           FastlaneCore::ConfigItem.new(key: :xcarchive,
                                        env_name: "",
-                                       description: ".xcarchive file for the build. If provided, it will be upload to s3",
-                                       optional: true),
+                                       description: ".xcarchive file for the build - set to an empty string (`""`) to not use `Actions.lane_context[SharedValues::XCODEBUILD_ARCHIVE])` as default value",
+                                       optional: true,
+                                       default_value: nil),
           FastlaneCore::ConfigItem.new(key: :dsym,
                                        env_name: "",
                                        description: "zipped .dsym package for the build ",
@@ -688,12 +687,7 @@ module Fastlane
                                        description: "Path to the folder you want to upload",
                                        is_string: true,
                                        optional: true,
-                                       default_value: nil),
-          FastlaneCore::ConfigItem.new(key: :obtain_path_from_gym,
-                                       env_name: "",
-                                       description: "Obtain XCode Archive path from gym",
-                                       optional: true,
-                                       default_value: false)
+                                       default_value: nil)
         ]
       end
 

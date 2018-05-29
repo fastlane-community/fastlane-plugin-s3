@@ -164,7 +164,11 @@ module Fastlane
         build_num = info['CFBundleVersion']
         bundle_id = info['CFBundleIdentifier']
         bundle_version = info['CFBundleShortVersionString']
-        title = CGI.escapeHTML(info['CFBundleDisplayName'])
+        display_name = info['CFBundleDisplayName']
+        if display_name.nil?
+          display_name = info['CFBundleName']
+        end
+        title = CGI.escapeHTML(display_name)
         full_version = "#{bundle_version}.#{build_num}"
 
         # Creating plist and html names

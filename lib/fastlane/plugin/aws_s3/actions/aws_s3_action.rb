@@ -272,7 +272,7 @@ module Fastlane
         archive_name = archive.gsub(' ','_')
         archive_zip = "#{archive_name}.zip"
         archive_zip_name = File.basename(archive_zip)
-        sh "zip -r '#{archive_zip}' '#{archive}'"
+        sh("zip -r '#{archive_zip}' '#{archive}'")
         full_archive_zip_name = "#{url_part}#{archive_zip_name}"
         archive_zip_data = File.open(archive_zip, 'rb')
 

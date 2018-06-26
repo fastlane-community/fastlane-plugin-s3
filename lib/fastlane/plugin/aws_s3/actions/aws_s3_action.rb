@@ -559,7 +559,7 @@ module Fastlane
                                        default_value: Actions.lane_context[SharedValues::IPA_OUTPUT_PATH]),
           FastlaneCore::ConfigItem.new(key: :xcarchive,
                                        env_name: "",
-                                       description: ".xcarchive file for the build. Set to a path to an `.xcarchive` file or `nil` for `Actions.lane_context[SharedValues::XCODEBUILD_ARCHIVE])` to be used"
+                                       description: ".xcarchive file for the build. Set to a path to an `.xcarchive` file or `nil` for `Actions.lane_context[SharedValues::XCODEBUILD_ARCHIVE])` to be used",
                                        optional: true,
                                        default_value: ""),
           FastlaneCore::ConfigItem.new(key: :dsym,

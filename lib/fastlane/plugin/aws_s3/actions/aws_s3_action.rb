@@ -97,6 +97,10 @@ module Fastlane
           Aws::S3::Client.new
         end
 
+        if xcarchive_file.nil?
+          xcarchive_file = Actions.lane_context[SharedValues::XCODEBUILD_ARCHIVE]
+        end
+
         upload_ipa(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl, server_side_encryption) if ipa_file.to_s.length > 0
         upload_apk(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl, server_side_encryption) if apk_file.to_s.length > 0
         upload_xcarchive(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, xcarchive_file, s3_path, acl, server_side_encryption) if xcarchive_file.to_s.length > 0
@@ -268,7 +272,7 @@ module Fastlane
         archive_name = archive.gsub(' ','_')
         archive_zip = "#{archive_name}.zip"
         archive_zip_name = File.basename(archive_zip)
-        sh "zip -r #{archive_zip} \'#{archive}\'"
+        sh("zip -r '#{archive_zip}' '#{archive}'")
         full_archive_zip_name = "#{url_part}#{archive_zip_name}"
         archive_zip_data = File.open(archive_zip, 'rb')
 
@@ -555,9 +559,9 @@ module Fastlane
                                        default_value: Actions.lane_context[SharedValues::IPA_OUTPUT_PATH]),
           FastlaneCore::ConfigItem.new(key: :xcarchive,
                                        env_name: "",
-                                       description: ".xcarchive file for the build ",
+                                       description: ".xcarchive file for the build. Set to a path to an `.xcarchive` file or `nil` for `Actions.lane_context[SharedValues::XCODEBUILD_ARCHIVE])` to be used",
                                        optional: true,
-                                       default_value: Actions.lane_context[SharedValues::XCODEBUILD_ARCHIVE]),
+                                       default_value: ""),
           FastlaneCore::ConfigItem.new(key: :dsym,
                                        env_name: "",
                                        description: "zipped .dsym package for the build ",
@@ -683,7 +687,7 @@ module Fastlane
                                        description: "Path to the folder you want to upload",
                                        is_string: true,
                                        optional: true,
-                                       default_value: nil),
+                                       default_value: nil)
         ]
       end
 

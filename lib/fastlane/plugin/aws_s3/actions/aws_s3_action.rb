@@ -2,7 +2,6 @@
 require 'fastlane/erb_template_helper'
 include ERB::Util
 require 'ostruct'
-require 'cgi'
 require 'mime-types'
 require 'pathname'
 
@@ -172,7 +171,7 @@ module Fastlane
         if display_name.nil?
           display_name = info['CFBundleName']
         end
-        title = CGI.escapeHTML(display_name)
+        title = display_name.html_safe
         full_version = "#{bundle_version}.#{build_num}"
 
         # Creating plist and html names

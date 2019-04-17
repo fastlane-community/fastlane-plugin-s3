@@ -136,6 +136,7 @@ module Fastlane
         ipa_file_data = File.open(ipa_file, 'rb')
 
         ipa_url = self.upload_file(s3_client, s3_bucket, app_directory, ipa_file_name, ipa_file_data, acl, server_side_encryption)
+        ipa_url["#{s3_bucket}.s3.#{s3_region}.amazonaws.com"] = custom_domain if custom_domain
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_IPA_OUTPUT_PATH] = ipa_url
@@ -147,6 +148,7 @@ module Fastlane
           dsym_file_data = File.open(dsym_file, 'rb')
 
           dsym_url = self.upload_file(s3_client, s3_bucket, app_directory, dsym_file_name, dsym_file_data, acl, server_side_encryption)
+          dsym_url["#{s3_bucket}.s3.#{s3_region}.amazonaws.com"] = custom_domain if custom_domain
 
           # Setting action and environment variables
           Actions.lane_context[SharedValues::S3_DSYM_OUTPUT_PATH] = dsym_url
@@ -193,7 +195,6 @@ module Fastlane
         else
           plist_template = eth.load("s3_ios_plist_template")
         end
-        ipa_url["#{s3_bucket}.s3.#{s3_region}.amazonaws.com"] = custom_domain if custom_domain
         plist_render = eth.render(plist_template, {
           url: ipa_url,
           ipa_url: ipa_url,
@@ -251,7 +252,9 @@ module Fastlane
         skip_html = params[:skip_html_upload]
         html_file_name = "#{url_part}#{html_file_name}" if generate_html_in_folder
         html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl, server_side_encryption) unless skip_html
+        html_url["#{s3_bucket}.s3.#{s3_region}.amazonaws.com"] = custom_domain if custom_domain unless skip_html
         version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl, server_side_encryption)
+        version_url["#{s3_bucket}.s3.#{s3_region}.amazonaws.com"] = custom_domain if custom_domain
 
         # Setting action and environment variables
         Actions.lane_context[SharedValues::S3_PLIST_OUTPUT_PATH] = plist_url
@@ -378,7 +381,9 @@ module Fastlane
         skip_html = params[:skip_html_upload]
         html_file_name = "#{url_part}#{html_file_name}" if generate_html_in_folder
         html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl, server_side_encryption) unless skip_html
+        html_url["#{s3_bucket}.s3.#{s3_region}.amazonaws.com"] = custom_domain if custom_domain unless skip_html
         version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl, server_side_encryption)
+        version_url["#{s3_bucket}.s3.#{s3_region}.amazonaws.com"] = custom_domain if custom_domain
 
         Actions.lane_context[SharedValues::S3_HTML_OUTPUT_PATH] = html_url unless skip_html
         ENV[SharedValues::S3_HTML_OUTPUT_PATH.to_s] = html_url unless skip_html

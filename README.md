@@ -42,7 +42,7 @@ aws_s3(
 
   endpoint: 'https://s3-us-west-1.amazonaws.com', # Optional, for buckets that require a specific endpoint
   ipa: 'AppName.ipa',                             # Required (if not uploading an APK).
-  dsym: 'AppName.app.dSYM.zip',                   # Optional is you use `ipa` to build.
+  dsym: 'AppName.app.dSYM.zip',                   # Optional if you use `ipa` to build.
 
   apk: 'AppName.apk',                             # Required (if not uploading an IPA).
 

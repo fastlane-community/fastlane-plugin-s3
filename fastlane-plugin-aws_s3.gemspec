@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'fastlane/plugin/aws_s3/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'fastlane-plugin-aws_s3'
+  spec.name          = 'fastlane-plugin-aws_s3_v3'
   spec.version       = Fastlane::AwsS3::VERSION
   spec.author        = %q{Josh Holtz}
   spec.email         = %q{josh@rokkincat.com}
@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'aws-sdk', '~> 2.3'
+  spec.add_dependency 'aws-sdk-s3', '~> 1'
   spec.add_dependency 'apktools', '~> 0.7'
   spec.add_dependency 'mime-types', '~> 3.1'
 

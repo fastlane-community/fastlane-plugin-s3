@@ -501,8 +501,6 @@ module Fastlane
         end
       end
 
-
-
       def self.upload_file(s3_client, bucket_name, app_directory, file_name, file_data, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex)
 
         if app_directory

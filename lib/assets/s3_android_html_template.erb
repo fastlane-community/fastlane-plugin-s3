@@ -11,6 +11,12 @@
         text-align: center;
         background-color: #f5f5f5;
       }
+      h1 {
+        margin-bottom: 0px;
+      }
+      h2 {
+        margin-top: 5px;
+      }
       .oneRow {
         width: 100%;
         overflow: auto;
@@ -50,6 +56,8 @@
     </style>
 
     <h1 style="text-align: center;"><%= title %></h1>
+    <h2><%= version_name %> (<%= version_code %>)</h2>
+    <p><em>Built on <%= Time.now.strftime('%a, %e %b %Y %H:%M %p') %></em></p>
     <!-- <img src="app_icon.png" id="appIcon"> -->
 
     <div class="oneRow">
@@ -57,8 +65,10 @@
         <a href="<%= apk_url %>" id="text" class="btn btn-lg btn-default" onclick="document.getElementById('finished').id = '';">
           Install <%= title %> <%= version_name %> (<%= version_code %>)
         </a>
-        <br>
-        <p>Built on <%= Time.now.strftime('%a, %e %b %Y %H:%M %p') %></p>
+      </span>
+
+      <span class="info">
+        <p><%= release_notes %></p>
       </span>
 
       <!-- <span class="download" id="android">

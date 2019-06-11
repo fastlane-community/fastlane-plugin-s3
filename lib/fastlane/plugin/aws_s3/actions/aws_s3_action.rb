@@ -29,6 +29,7 @@ module Fastlane
         params[:ipa] = config[:ipa]
         params[:xcarchive] = config[:xcarchive]
         params[:dsym] = config[:dsym]
+        params[:release_notes] = config[:release_notes]
         params[:access_key] = config[:access_key]
         params[:secret_access_key] = config[:secret_access_key]
         params[:aws_profile] = config[:aws_profile]
@@ -64,6 +65,7 @@ module Fastlane
         s3_endpoint = params[:endpoint]
         apk_file = params[:apk]
         ipa_file = params[:ipa]
+        release_notes = params[:release_notes]
         xcarchive_file = params[:xcarchive]
         files = params[:files]
         folder = params[:folder]
@@ -101,8 +103,8 @@ module Fastlane
           xcarchive_file = Actions.lane_context[SharedValues::XCODEBUILD_ARCHIVE]
         end
 
-        upload_ipa(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl, server_side_encryption) if ipa_file.to_s.length > 0
-        upload_apk(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl, server_side_encryption) if apk_file.to_s.length > 0
+        upload_ipa(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, release_notes, s3_path, acl, server_side_encryption) if ipa_file.to_s.length > 0
+        upload_apk(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, release_notes, s3_path, acl, server_side_encryption) if apk_file.to_s.length > 0
         upload_xcarchive(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, xcarchive_file, s3_path, acl, server_side_encryption) if xcarchive_file.to_s.length > 0
         upload_files(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, files, s3_path, acl, server_side_encryption) if files.to_a.count > 0
         upload_folder(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, folder, s3_path, acl, server_side_encryption) if folder.to_s.length > 0
@@ -110,7 +112,7 @@ module Fastlane
         return true
       end
 
-      def self.upload_ipa(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, s3_path, acl, server_side_encryption)
+      def self.upload_ipa(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, ipa_file, dsym_file, release_notes, s3_path, acl, server_side_encryption)
 
         s3_path = "v{CFBundleShortVersionString}_b{CFBundleVersion}/" unless s3_path
 
@@ -220,7 +222,8 @@ module Fastlane
           build_num: build_num,
           bundle_id: bundle_id,
           bundle_version: bundle_version,
-          title: title
+          title: title,
+          release_notes: release_notes
         }.merge(html_template_params))
 
         # Creates version from template
@@ -235,7 +238,8 @@ module Fastlane
           ipa_url: ipa_url,
           build_num: build_num,
           bundle_version: bundle_version,
-          full_version: full_version
+          full_version: full_version,
+          release_notes: release_notes
         }.merge(version_template_params))
 
         #####################################
@@ -288,7 +292,7 @@ module Fastlane
         UI.success("Successfully uploaded archive file to '#{Actions.lane_context[SharedValues::S3_XCARCHIVE_OUTPUT_PATH]}'")
       end
 
-      def self.upload_apk(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, s3_path, acl, server_side_encryption)
+      def self.upload_apk(s3_client, params, s3_region, s3_access_key, s3_secret_access_key, s3_bucket, apk_file, release_notes, s3_path, acl, server_side_encryption)
         version = get_apk_version(apk_file)
 
         version_code = version[0]
@@ -347,7 +351,8 @@ module Fastlane
           apk_url: apk_url,
           version_code: version_code,
           version_name: version_name,
-          title: title
+          title: title,
+          release_notes: release_notes
         }.merge(html_template_params))
 
         # Creates version from template
@@ -360,7 +365,8 @@ module Fastlane
           apk_url: apk_url,
           version_code: version_code,
           version_name: version_name,
-          full_version: "#{version_code}_#{version_name}"
+          full_version: "#{version_code}_#{version_name}",
+          release_notes: release_notes
         }.merge(version_template_params))
 
         #####################################
@@ -571,6 +577,10 @@ module Fastlane
                                        description: "zipped .dsym package for the build ",
                                        optional: true,
                                        default_value: Actions.lane_context[SharedValues::DSYM_OUTPUT_PATH]),
+          FastlaneCore::ConfigItem.new(key: :release_notes,
+                                       env_name: "",
+                                       description: "release notes to display on the html page and version json",
+                                       optional: true),
           FastlaneCore::ConfigItem.new(key: :upload_metadata,
                                        env_name: "",
                                        description: "Upload relevant metadata for this build",

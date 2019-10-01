@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = %q{josh@rokkincat.com}
 
   spec.summary       = %q{Upload IPA and APK to S3}
-  spec.homepage      = "https://github.com/joshdholtz/fastlane-plugin-s3"
+  spec.homepage      = "https://github.com/fastlane-community/fastlane-plugin-s3"
   spec.license       = "MIT"
 
   spec.files         = Dir["lib/**/*"] + %w(README.md LICENSE)

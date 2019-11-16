@@ -17,12 +17,12 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'aws-sdk', '~> 2.3'
+  spec.add_dependency 'aws-sdk', '~> 3.0.1'
   spec.add_dependency 'apktools', '~> 0.7'
-  spec.add_dependency 'mime-types', '~> 3.1'
+  spec.add_dependency 'mime-types', '~> 3.3'
 
   spec.add_development_dependency 'pry'
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rspec'
-  spec.add_development_dependency 'fastlane', '>= 1.93.1'
+  spec.add_development_dependency 'fastlane', '>= 2.136.0'
 end

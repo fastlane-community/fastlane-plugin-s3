@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'aws-sdk', '~> 3.0.1'
+  spec.add_dependency 'aws-sdk-s3', '~> 1'
   spec.add_dependency 'apktools', '~> 0.7'
   spec.add_dependency 'mime-types', '~> 3.3'
 

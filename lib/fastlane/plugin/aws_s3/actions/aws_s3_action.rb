@@ -82,7 +82,7 @@ module Fastlane
         UI.user_error!("No IPA, APK file, folder or files paths given, pass using `ipa: 'ipa path'` or `apk: 'apk path'` or `folder: 'folder path' or files: [`file path1`, `file path 2`]") if ipa_file.to_s.length == 0 && apk_file.to_s.length == 0 && files.to_a.count == 0 && folder.to_s.length == 0
         UI.user_error!("Please only give IPA path or APK path (not both)") if ipa_file.to_s.length > 0 && apk_file.to_s.length > 0
 
-        require 'aws-sdk'
+        require 'aws-sdk-s3'
         if s3_profile
           creds = Aws::SharedCredentials.new(profile_name: s3_profile);
         else

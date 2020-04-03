@@ -24,5 +24,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'pry'
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rspec'
-  spec.add_development_dependency 'fastlane', '>= 2.136.0'
+  spec.add_development_dependency 'fastlane', '>= 2.144.0'
 end

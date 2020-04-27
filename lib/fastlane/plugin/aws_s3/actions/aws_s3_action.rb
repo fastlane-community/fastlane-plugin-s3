@@ -74,19 +74,19 @@ module Fastlane
         acl     = params[:acl].to_sym
         server_side_encryption = params[:server_side_encryption]
 
-        unless s3_profile
-          UI.user_error!("No S3 access key given, pass using `access_key: 'key'` (or use `aws_profile: 'profile'`)") unless s3_access_key.to_s.length > 0
-          UI.user_error!("No S3 secret access key given, pass using `secret_access_key: 'secret key'` (or use `aws_profile: 'profile'`)") unless s3_secret_access_key.to_s.length > 0
-        end
         UI.user_error!("No S3 bucket given, pass using `bucket: 'bucket'`") unless s3_bucket.to_s.length > 0
         UI.user_error!("No IPA, APK file, folder or files paths given, pass using `ipa: 'ipa path'` or `apk: 'apk path'` or `folder: 'folder path' or files: [`file path1`, `file path 2`]") if ipa_file.to_s.length == 0 && apk_file.to_s.length == 0 && files.to_a.count == 0 && folder.to_s.length == 0
         UI.user_error!("Please only give IPA path or APK path (not both)") if ipa_file.to_s.length > 0 && apk_file.to_s.length > 0
 
-        require 'aws-sdk'
+        require 'aws-sdk-s3'
         if s3_profile
           creds = Aws::SharedCredentials.new(profile_name: s3_profile);
-        else
+        elsif s3_access_key.to_s.length > 0 && s3_secret_access_key.to_s.length > 0
           creds = Aws::Credentials.new(s3_access_key, s3_secret_access_key)
+        else
+          UI.important("No S3 access key or S3 secret access key given, using S3 instance profile by default.")
+          UI.important("If you want to use specific creds to S3 access, you can pass using `access_key: 'key'` and `secret_access_key: 'secret key'` (or use `aws_profile: 'profile'`)")
+          creds = Aws::InstanceProfileCredentials.new()
         end
         Aws.config.update({
                             region: s3_region,

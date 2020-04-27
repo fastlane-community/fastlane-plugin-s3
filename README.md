@@ -34,11 +34,11 @@ aws_s3(
   # All of these are used to make Shenzhen's `ipa distribute:s3` command
   access_key: ENV['S3_ACCESS_KEY'],               # Optional - defaults to AWS Instance Profile Creds.
   secret_access_key: ENV['S3_SECRET_ACCESS_KEY'], # Optional - defaults to AWS Instance Profile Creds.
-  aws_profile: ENV['AWS_PROFILE']                 # Optional - defaults to AWS Instance Profile Creds. (overrides if access_key and secret_access_key specified)
+  aws_profile: ENV['AWS_PROFILE'],                # Optional - defaults to AWS Instance Profile Creds. (overrides if access_key and secret_access_key specified)
   bucket: ENV['S3_BUCKET'],                       # Required from user.
   region: ENV['S3_REGION'],                       # Required from user.
   acl: ENV['S3_ACL'],                             # Optional - defaults to 'public-read'
-  server_side_encryption: ENV['S3_SERVER_SIDE_ENCRYPTION'] # Optional
+  server_side_encryption: ENV['S3_SERVER_SIDE_ENCRYPTION'], # Optional
 
   endpoint: 'https://s3-us-west-1.amazonaws.com', # Optional, for buckets that require a specific endpoint
   ipa: 'AppName.ipa',                             # Required (if not uploading an APK).

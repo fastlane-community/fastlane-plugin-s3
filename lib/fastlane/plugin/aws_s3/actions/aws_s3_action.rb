@@ -494,7 +494,7 @@ module Fastlane
           file_name = url_part + '/' + file_relative_path_to_folder
 
           file_url = self.upload_file(s3_client, s3_bucket, app_directory, file_name, file_data, acl, server_side_encryption)
-          Actions.lane_context[SharedValues::S3_FOLDER_OUTPUT_PATH] = file_url.gsub('/' + file_relative_path_to_folder, '')
+          Actions.lane_context[SharedValues::S3_FOLDER_OUTPUT_PATH] = CGI.unescape(file_url).gsub('/' + file_relative_path_to_folder, '')
         end
       end
 

@@ -304,7 +304,7 @@ module Fastlane
         version_name = version[1]
         title = version[2]
 
-        s3_path = "#{version_code}_#{version_name}/" unless s3_path
+        s3_path = "v{version_name}_b{version_code}/" unless s3_path
 
         app_directory = params[:app_directory]
 
@@ -319,7 +319,7 @@ module Fastlane
         download_endpoint = params[:download_endpoint]
         download_endpoint_replacement_regex = params[:download_endpoint_replacement_regex]
 
-        url_part = s3_path
+        url_part = self.expand_path_with_substitutions_with_versions(version_code, version_name, s3_path)
 
         apk_file_basename = File.basename(apk_file)
         apk_file_name = "#{url_part}#{override_file_name ? override_file_name : apk_file_basename}"
@@ -562,6 +562,12 @@ module Fastlane
           path.gsub!(Regexp.new(substitution), value) if value
         end
 
+        return path
+      end
+
+      def self.expand_path_with_substitutions_with_versions(version_code, version_name, path)
+        path.gsub!(/\{version_code\}/, version_code.to_s) if version_code
+        path.gsub!(/\{version_name\}/, version_name) if version_name
         return path
       end
 

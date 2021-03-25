@@ -24,7 +24,13 @@ lane :ipa21 do
     ipa: './fastlane/ipa21/BanditTheCat.ipa',
     source: './fastlane/ipa21/source',
     skip_html_upload: false,
-    release_notes: 'Hey some notes <br/>And some other notes<br/>And some other'
+    release_notes: 'Hey some notes <br/>And some other notes<br/>And some other',
+
+#    html_in_folder: true,
+#    html_in_root: true,
+#
+#    version_in_folder: true,
+#    version_in_root: true,
   )
 end
 
@@ -33,7 +39,12 @@ lane :ipa24 do
     bucket: 'fastlane-plugin-s3-ios',
     region: 'us-west-1',
     ipa: './fastlane/ipa24/BanditTheCat.ipa',
-    html_in_folder: true
+
+#    html_in_folder: true,
+#    html_in_root: true,
+#
+#    version_in_folder: true,
+#    version_in_root: true,
   )
 end
 

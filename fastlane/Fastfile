@@ -23,7 +23,8 @@ lane :ipa21 do
     region: 'us-west-1',
     ipa: './fastlane/ipa21/BanditTheCat.ipa',
     source: './fastlane/ipa21/source',
-    skip_html_upload: false
+    skip_html_upload: false,
+    release_notes: 'Hey some notes <br/>And some other notes<br/>And some other'
   )
 end
 
@@ -42,7 +43,8 @@ lane :apk1 do
     region: 'us-west-1',
     apk: './fastlane/apk1/BanditTheCat.apk',
     source: './fastlane/apk1/source',
-    skip_html_upload: false
+    skip_html_upload: false,
+    release_notes: 'Hey some notes <br/>And some other notes<br/>And some other'
   )
 end
 

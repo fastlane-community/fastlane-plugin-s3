@@ -1,5 +1,5 @@
 module Fastlane
   module AwsS3
-    VERSION = "1.8.0"
+    VERSION = "2.0.0"
   end
 end

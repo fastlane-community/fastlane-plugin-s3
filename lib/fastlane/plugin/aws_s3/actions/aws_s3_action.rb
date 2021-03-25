@@ -81,25 +81,14 @@ module Fastlane
         UI.user_error!("Please only give IPA path or APK path (not both)") if ipa_file.to_s.length > 0 && apk_file.to_s.length > 0
 
         require 'aws-sdk-s3'
-        if s3_profile
-          creds = Aws::SharedCredentials.new(profile_name: s3_profile);
-        elsif s3_access_key.to_s.length > 0 && s3_secret_access_key.to_s.length > 0
-          creds = Aws::Credentials.new(s3_access_key, s3_secret_access_key)
-        else
-          UI.important("No S3 access key or S3 secret access key given, using S3 instance profile by default.")
-          UI.important("If you want to use specific creds to S3 access, you can pass using `access_key: 'key'` and `secret_access_key: 'secret key'` (or use `aws_profile: 'profile'`)")
-          creds = Aws::InstanceProfileCredentials.new()
-        end
-        Aws.config.update({
-                            region: s3_region,
-                            credentials: creds
-        })
 
-        s3_client = if s3_endpoint
-          Aws::S3::Client.new(endpoint: s3_endpoint)
-        else
-          Aws::S3::Client.new
-        end
+        client_cfg = {}
+        client_cfg[:region] = s3_region if s3_region
+        client_cfg[:endpoint] = s3_endpoint if s3_endpoint
+        client_cfg[:profile] = s3_profile if s3_profile
+        client_cfg[:credentials] = Aws::Credentials.new(s3_access_key, s3_secret_access_key) if s3_access_key && s3_secret_access_key
+
+        s3_client = Aws::S3::Client.new(client_cfg)
 
         if xcarchive_file.nil?
           xcarchive_file = Actions.lane_context[SharedValues::XCODEBUILD_ARCHIVE]

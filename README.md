@@ -32,17 +32,17 @@ You can also customize a lot of options:
 ```ruby
 aws_s3(
   # All of these are used to make Shenzhen's `ipa distribute:s3` command
-  access_key: ENV['S3_ACCESS_KEY'],               # Required from user (unless using aws_profile).
-  secret_access_key: ENV['S3_SECRET_ACCESS_KEY'], # Required from user (unless using aws_profile).
-  aws_profile: ENV['AWS_PROFILE']                 # Required from user (unless using access_key and secret_access_key)
+  access_key: ENV['S3_ACCESS_KEY'],               # Optional - defaults to AWS Instance Profile Creds.
+  secret_access_key: ENV['S3_SECRET_ACCESS_KEY'], # Optional - defaults to AWS Instance Profile Creds.
+  aws_profile: ENV['AWS_PROFILE'],                # Optional - defaults to AWS Instance Profile Creds. (overrides if access_key and secret_access_key specified)
   bucket: ENV['S3_BUCKET'],                       # Required from user.
   region: ENV['S3_REGION'],                       # Required from user.
   acl: ENV['S3_ACL'],                             # Optional - defaults to 'public-read'
-  server_side_encryption: ENV['S3_SERVER_SIDE_ENCRYPTION'] # Optional
+  server_side_encryption: ENV['S3_SERVER_SIDE_ENCRYPTION'], # Optional
 
   endpoint: 'https://s3-us-west-1.amazonaws.com', # Optional, for buckets that require a specific endpoint
   ipa: 'AppName.ipa',                             # Required (if not uploading an APK).
-  dsym: 'AppName.app.dSYM.zip',                   # Optional is you use `ipa` to build.
+  dsym: 'AppName.app.dSYM.zip',                   # Optional if you use `ipa` to build.
 
   apk: 'AppName.apk',                             # Required (if not uploading an IPA).
 
@@ -55,7 +55,7 @@ aws_s3(
 )
 ```
 
-It is recommended to **not** store the AWS access keys in the `Fastfile`.
+It is recommended to **not** store the AWS access keys in the `Fastfile`. You can use [AWS Instance Profiles](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html) by attaching IAM roles to your EC2 configurations.
 
 The uploaded `version.json` file provides an easy way for apps to poll if a new update is available. The JSON looks like:
 
@@ -84,7 +84,4 @@ For more information about how the `fastlane` plugin system works, check out the
 
 ## Author
 
-Josh Holtz, josh@rokkincat.com, [@joshdholtz](https://twitter.com/joshdholtz)
-
-I'm available for freelance work (Fastlane, iOS, and Android development) :muscle:
-Feel free to contact me :rocket:
+Josh Holtz, me@joshholtz.com, [@joshdholtz](https://twitter.com/joshdholtz)

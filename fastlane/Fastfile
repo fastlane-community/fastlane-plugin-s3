@@ -23,7 +23,14 @@ lane :ipa21 do
     region: 'us-west-1',
     ipa: './fastlane/ipa21/BanditTheCat.ipa',
     source: './fastlane/ipa21/source',
-    skip_html_upload: false
+    skip_html_upload: false,
+    release_notes: 'Hey some notes <br/>And some other notes<br/>And some other',
+
+#    html_in_folder: true,
+#    html_in_root: true,
+#
+#    version_in_folder: true,
+#    version_in_root: true,
   )
 end
 
@@ -32,7 +39,12 @@ lane :ipa24 do
     bucket: 'fastlane-plugin-s3-ios',
     region: 'us-west-1',
     ipa: './fastlane/ipa24/BanditTheCat.ipa',
-    html_in_folder: true
+
+#    html_in_folder: true,
+#    html_in_root: true,
+#
+#    version_in_folder: true,
+#    version_in_root: true,
   )
 end
 
@@ -42,7 +54,8 @@ lane :apk1 do
     region: 'us-west-1',
     apk: './fastlane/apk1/BanditTheCat.apk',
     source: './fastlane/apk1/source',
-    skip_html_upload: false
+    skip_html_upload: false,
+    release_notes: 'Hey some notes <br/>And some other notes<br/>And some other'
   )
 end
 
@@ -60,6 +73,31 @@ lane :east do
     bucket: 'fastlane-plugin-s3-east',
     region: 'us-east-1',
     ipa: './fastlane/ipa21/BanditTheCat.ipa'
+  )
+end
+
+lane :files_no_path do
+  aws_s3(
+    bucket: 'fastlane-plugin-s3-east',
+    region: 'us-east-1',
+    files: [
+      './fastlane/testfile1.txt',
+      './fastlane/testfile2.txt',
+    ],
+    folder: './fastlane/testdir1'
+  )
+end
+
+lane :files do
+  aws_s3(
+    bucket: 'fastlane-plugin-s3-east',
+    region: 'us-east-1',
+    path: 'dafiles',
+    files: [
+      './fastlane/testfile1.txt',
+      './fastlane/testfile2.txt',
+    ],
+    folder: './fastlane/testdir1'
   )
 end
 

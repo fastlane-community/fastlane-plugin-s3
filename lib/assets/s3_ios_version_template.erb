@@ -1,4 +1,9 @@
 {
     "latestVersion": "<%= full_version %>",
-    "updateUrl": "itms-services://?action=download-manifest&url=<%= url_encode(plist_url) %>"
+    "updateUrl": "itms-services://?action=download-manifest&url=<%= url_encode(plist_url) %>",
+    "plist_url": "<%= plist_url %>",
+    "ipa_url": "<%= ipa_url %>",
+    "build_number": "<%= build_num %>",
+    "bundle_version": "<%= bundle_version %>",
+    "release_notes": <%= release_notes.to_json %>
 }

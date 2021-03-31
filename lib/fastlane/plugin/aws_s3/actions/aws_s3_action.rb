@@ -520,13 +520,16 @@ module Fastlane
         app_directory = params[:app_directory]
         url_part = s3_path
 
+        download_endpoint = params[:download_endpoint]
+        download_endpoint_replacement_regex = params[:download_endpoint_replacement_regex]
+
         Actions.lane_context[SharedValues::S3_FILES_OUTPUT_PATHS] = []
         files.each do |file|
           file_basename = File.basename(file)
           file_data = File.open(file, 'rb')
           file_name = url_part + '/' + file_basename
 
-          file_url = self.upload_file(s3_client, s3_bucket, app_directory, file_name, file_data, acl, server_side_encryption)
+          file_url = self.upload_file(s3_client, s3_bucket, app_directory, file_name, file_data, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex)
 
           # Setting action and environment variables
           Actions.lane_context[SharedValues::S3_FILES_OUTPUT_PATHS] << file_url
@@ -541,6 +544,9 @@ module Fastlane
         url_part = s3_path
         app_directory = params[:app_directory]
 
+        download_endpoint = params[:download_endpoint]
+        download_endpoint_replacement_regex = params[:download_endpoint_replacement_regex]
+
         unless File.directory?(folder)
           UI.user_error!("Invalid folder parameter. `#{File.expand_path(folder)} is not a directory!")
         end
@@ -551,7 +557,7 @@ module Fastlane
           file_relative_path_to_folder = Pathname.new(File.expand_path(file)).relative_path_from(Pathname.new(File.expand_path(folder))).to_s
           file_name = url_part + '/' + file_relative_path_to_folder
 
-          file_url = self.upload_file(s3_client, s3_bucket, app_directory, file_name, file_data, acl, server_side_encryption)
+          file_url = self.upload_file(s3_client, s3_bucket, app_directory, file_name, file_data, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex)
           Actions.lane_context[SharedValues::S3_FOLDER_OUTPUT_PATH] = CGI.unescape(file_url).gsub('/' + file_relative_path_to_folder, '')
         end
       end

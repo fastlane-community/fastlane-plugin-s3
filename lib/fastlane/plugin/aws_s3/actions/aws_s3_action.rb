@@ -432,7 +432,7 @@ module Fastlane
           html_url = self.upload_file(s3_client, s3_bucket, app_directory, html_file_name, html_render, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex)
         end
 
-        version_file_names do |version_file_name|
+        version_file_names.each do |version_file_name|
           version_url = self.upload_file(s3_client, s3_bucket, app_directory, version_file_name, version_render, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex)
         end
 

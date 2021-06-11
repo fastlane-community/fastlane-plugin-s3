@@ -527,7 +527,7 @@ module Fastlane
         files.each do |file|
           file_basename = File.basename(file)
           file_data = File.open(file, 'rb')
-          file_name = url_part + '/' + file_basename
+          file_name = url_part + file_basename
 
           file_url = self.upload_file(s3_client, s3_bucket, app_directory, file_name, file_data, acl, server_side_encryption, download_endpoint, download_endpoint_replacement_regex)
 

@@ -176,7 +176,7 @@ module Fastlane
         full_version = "#{bundle_version}.#{build_num}"
 
         # Creating plist and html names
-        plist_file_name ||= "#{url_part}#{URI.escape(title.delete(' '))}.plist"
+        plist_file_name ||= "#{url_part}#{CGI.escape(title.delete(' '))}.plist"
 
         html_file_name ||= "index.html"
 

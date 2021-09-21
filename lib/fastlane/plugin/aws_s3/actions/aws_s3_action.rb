@@ -32,6 +32,7 @@ module Fastlane
         params[:release_notes] = config[:release_notes]
         params[:access_key] = config[:access_key]
         params[:secret_access_key] = config[:secret_access_key]
+        params[:aws_session_token] = config[:aws_session_token]
         params[:aws_profile] = config[:aws_profile]
         params[:bucket] = config[:bucket]
         params[:endpoint] = config[:endpoint]
@@ -65,6 +66,7 @@ module Fastlane
         s3_region = params[:region]
         s3_access_key = params[:access_key]
         s3_secret_access_key = params[:secret_access_key]
+        s3_session_token = params[:aws_session_token]
         s3_profile = params[:aws_profile]
         s3_bucket = params[:bucket]
         s3_endpoint = params[:endpoint]
@@ -89,7 +91,7 @@ module Fastlane
         client_cfg[:region] = s3_region if s3_region
         client_cfg[:endpoint] = s3_endpoint if s3_endpoint
         client_cfg[:profile] = s3_profile if s3_profile
-        client_cfg[:credentials] = Aws::Credentials.new(s3_access_key, s3_secret_access_key) if s3_access_key && s3_secret_access_key
+        client_cfg[:credentials] = Aws::Credentials.new(s3_access_key, s3_secret_access_key, s3_session_token) if s3_access_key && s3_secret_access_key
 
         s3_client = Aws::S3::Client.new(client_cfg)
 
@@ -736,6 +738,11 @@ module Fastlane
                                        description: "AWS Secret Access Key ",
                                        optional: true,
                                        default_value: ENV['AWS_SECRET_ACCESS_KEY']),
+          FastlaneCore::ConfigItem.new(key: :aws_session_token,
+                                       env_name: "S3_SESSION_TOKEN",
+                                       description: "AWS Session TOKEN ",
+                                       optional: true,
+                                       default_value: ENV['AWS_SESSION_TOKEN']),
           FastlaneCore::ConfigItem.new(key: :aws_profile,
                                        env_name: "S3_PROFILE",
                                        description: "AWS profile to use for credentials",

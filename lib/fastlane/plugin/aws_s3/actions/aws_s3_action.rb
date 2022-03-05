@@ -765,7 +765,7 @@ module Fastlane
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :acl,
                                        env_name: "S3_ACL",
-                                       description: "Uploaded object permissions e.g public_read (default), private, public_read_write, authenticated_read ",
+                                       description: "Uploaded object permissions e.g public-read (default), private, public-read-write, authenticated-read ",
                                        optional: true,
                                        default_value: "public-read"),
           FastlaneCore::ConfigItem.new(key: :server_side_encryption,

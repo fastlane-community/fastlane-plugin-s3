@@ -41,6 +41,9 @@ aws_s3(
   server_side_encryption: ENV['S3_SERVER_SIDE_ENCRYPTION'], # Optional
 
   endpoint: 'https://s3-us-west-1.amazonaws.com', # Optional, for buckets that require a specific endpoint
+  download_endpoint: 'https://distribution.cloudfront.net', # Optional, The endpoint for downloads from your S3 bucket or cloudfront distribution
+  download_endpoint_replacement_regex: '^https?://[^/]*', # Optional, A regex used to determine which part of the S3 URL to replace with download_endpoint
+
   ipa: 'AppName.ipa',                             # Required (if not uploading an APK).
   dsym: 'AppName.app.dSYM.zip',                   # Optional if you use `ipa` to build.
 

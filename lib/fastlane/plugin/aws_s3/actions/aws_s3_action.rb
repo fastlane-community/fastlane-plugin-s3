@@ -818,6 +818,16 @@ module Fastlane
                                        is_string: true,
                                        optional: true,
                                        default_value: nil)
+          FastlaneCore::ConfigItem.new(key: :force_path_style,
+                                       env_name: "",
+                                       description: "Use path style for custom s3 compatible storage",
+                                       optional: true,
+                                       default_value: false)
+          FastlaneCore::ConfigItem.new(key: :http_wire_trace,
+                                       env_name: "",
+                                       description: "dump http trace",
+                                       optional: true,
+                                       default_value: false)
         ]
       end
 

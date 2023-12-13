@@ -61,6 +61,8 @@ module Fastlane
         params[:override_file_name] = config[:override_file_name]
         params[:files] = config[:files]
         params[:folder] = config[:folder]
+        params[:force_path_style] = config[:force_path_style]
+        params[:http_wire_trace] = config[:http_wire_trace]
 
         # Pulling parameters for other uses
         s3_region = params[:region]
@@ -70,6 +72,8 @@ module Fastlane
         s3_profile = params[:aws_profile]
         s3_bucket = params[:bucket]
         s3_endpoint = params[:endpoint]
+        s3_force_path_style = params[:force_path_style]
+        s3_http_wire_trace = params[:http_wire_trace]
         apk_file = params[:apk]
         ipa_file = params[:ipa]
         release_notes = params[:release_notes]
@@ -92,6 +96,8 @@ module Fastlane
         client_cfg[:endpoint] = s3_endpoint if s3_endpoint
         client_cfg[:profile] = s3_profile if s3_profile
         client_cfg[:credentials] = Aws::Credentials.new(s3_access_key, s3_secret_access_key, s3_session_token) if s3_access_key && s3_secret_access_key
+        client_cfg[:force_path_style] = s3_force_path_style
+        client_cfg[:http_wire_trace] = s3_http_wire_trace
 
         s3_client = Aws::S3::Client.new(client_cfg)
 

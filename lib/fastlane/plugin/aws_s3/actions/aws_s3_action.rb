@@ -822,11 +822,13 @@ module Fastlane
                                        env_name: "",
                                        description: "Use path style for custom s3 compatible storage",
                                        optional: true,
+                                       type: Boolean,
                                        default_value: false),
           FastlaneCore::ConfigItem.new(key: :http_wire_trace,
                                        env_name: "",
                                        description: "dump http trace",
                                        optional: true,
+                                       type: Boolean,
                                        default_value: false),
         ]
       end
